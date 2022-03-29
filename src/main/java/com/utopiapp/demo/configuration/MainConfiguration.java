@@ -30,19 +30,11 @@ public class MainConfiguration extends WebSecurityConfigurerAdapter {
     @Autowired
     UserDetailsServiceImpl userDetailsService;
 
-    //Devuelve el mensaje de no autorizado
-    //@Autowired
-    //JwtEntryPoint jwtEntryPoint;
-
     @Bean
     public JwtTokenFilter jwtTokenFilter(){
         return new JwtTokenFilter();
     }
 
-    /**
-     * Encripta el pasword
-     * @return pasword ecriptado
-     */
     @Bean
     public PasswordEncoder passwordEncoder(){
         return new BCryptPasswordEncoder();
