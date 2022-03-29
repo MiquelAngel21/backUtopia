@@ -1,12 +1,12 @@
 package com.utopiapp.demo.jwt;
 
+import com.utopiapp.demo.model.UserMain;
 import com.utopiapp.demo.service.implementations.UserDetailsServiceImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import javax.servlet.FilterChain;
@@ -30,6 +30,10 @@ public class JwtTokenFilter extends OncePerRequestFilter {
     @Autowired
     UserDetailsServiceImpl userDetailsService;
 
+
+    public JwtTokenFilter() {
+    }
+
     // El token esta formado por:
     // cabecera --> Authorization: Bearer token
     //Hace las comprobaciones
@@ -44,7 +48,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
             if(token != null && jwtProvider.validateToken(token)){
 
                 String email = jwtProvider.getEmailFromToken(token);
-                UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+                UserMain userDetails = (UserMain) userDetailsService.loadUserByUsername(email);
                 UsernamePasswordAuthenticationToken auth =
                         new UsernamePasswordAuthenticationToken(userDetails,
                                 null, userDetails.getAuthorities());
@@ -59,7 +63,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
 
 
     //Obtenemos el token sin Bearer + el espacio
-    private String getToken(HttpServletRequest request){
+    public String getToken(HttpServletRequest request){
 
         String header = request.getHeader("Authorization");
         if(header != null && header.startsWith("Bearer"))

@@ -1,11 +1,9 @@
 package com.utopiapp.demo.jwt;
 
-import com.utopiapp.demo.model.UserMain;
 import io.jsonwebtoken.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
@@ -33,14 +31,15 @@ public class JwtProvider {
      * signWith --> Firma
      */
     public String generateToken(Map<String, Object> user){
-        return Jwts.builder()
-                .setClaims(user)
+
+        return Jwts.builder().setClaims(user)
                 .signWith(SignatureAlgorithm.HS512, secret)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(new Date().getTime() + expiration * 1000L))
                 .compact();
     }
-    //subject --> Email del usuario
+
+    //subject --> user
     public String getEmailFromToken(String token){
         Map<String, Object> user = Jwts.parser().setSigningKey(secret).parseClaimsJws(token).getBody();
         return (String) user.get("email");
@@ -63,6 +62,4 @@ public class JwtProvider {
         }
         return false;
     }
-
-
 }
