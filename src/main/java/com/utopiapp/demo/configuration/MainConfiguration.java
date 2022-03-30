@@ -77,9 +77,8 @@ public class MainConfiguration extends WebSecurityConfigurerAdapter {
         // cada vez que hacemos una petición
         http.cors().and().csrf().disable()
                 .authorizeRequests()
-                .antMatchers(HttpMethod.GET, "/image/*","/categories",
-                        "/categories/*", "/topics/*","/categories/*/topics").permitAll()
-                .antMatchers(HttpMethod.POST, "/login", "/register").permitAll()
+                .antMatchers(HttpMethod.GET, "/*").permitAll()
+                //.antMatchers(HttpMethod.POST, "/login", "/register").permitAll()
                 .anyRequest().authenticated()
                 .and()
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
