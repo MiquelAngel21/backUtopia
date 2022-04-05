@@ -3,6 +3,7 @@ package com.utopiapp.demo.model;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
+import java.util.Set;
 
 @Entity
 public class Petition {
@@ -20,6 +21,15 @@ public class Petition {
 
     @Column(nullable = false)
     private String title;
+
+    @ManyToOne
+    private Club club;
+
+    @ManyToOne
+    private Client client;
+
+    @ManyToMany(mappedBy = "petitions")
+    private Set<ActivitySheet> activitySheets;
 
     public Long getId() {
         return id;

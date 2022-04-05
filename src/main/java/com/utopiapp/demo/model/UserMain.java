@@ -17,6 +17,8 @@ public class UserMain {
     private LocalDateTime createdDate;
     private Role role;
 
+
+
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return null;
     }

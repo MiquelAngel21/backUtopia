@@ -2,10 +2,8 @@ package com.utopiapp.demo.model;
 
 import org.hibernate.annotations.GenericGenerator;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
+import javax.persistence.*;
+import java.util.Set;
 
 @Entity
 public class Activity {
@@ -19,6 +17,21 @@ public class Activity {
 
     @Column(nullable = false)
     private String description;
+
+    @OneToOne(mappedBy = "activity")
+    private Guide guide;
+
+    @ManyToOne
+    private Client client;
+
+    @ManyToMany(mappedBy = "activities")
+    private Set<Tag> tag;
+
+    @OneToMany(mappedBy = "activity")
+    private Set<Material> materials;
+
+    @OneToMany(mappedBy = "activity")
+    private Set<File> files;
 
     public Long getId() {
         return id;

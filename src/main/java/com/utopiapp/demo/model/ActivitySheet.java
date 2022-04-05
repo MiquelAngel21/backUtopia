@@ -2,11 +2,9 @@ package com.utopiapp.demo.model;
 
 import org.hibernate.annotations.GenericGenerator;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
+import javax.persistence.*;
 import java.time.LocalDate;
+import java.util.Set;
 
 @Entity
 public class ActivitySheet {
@@ -20,6 +18,21 @@ public class ActivitySheet {
 
     @Column(nullable = false)
     private LocalDate activityDate;
+
+    @ManyToMany()
+    private Set<Petition> petitions;
+
+    @ManyToOne()
+    private Category category;
+
+    @ManyToOne
+    private Club club;
+
+    @ManyToOne
+    private Client client;
+
+    @OneToMany(mappedBy = "activitySheet")
+    private Set<Guide> guides;
 
     public Long getId() {
         return id;

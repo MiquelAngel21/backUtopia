@@ -2,10 +2,8 @@ package com.utopiapp.demo.model;
 
 import org.hibernate.annotations.GenericGenerator;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
+import javax.persistence.*;
+import java.util.Set;
 
 @Entity
 public class Tag {
@@ -16,6 +14,9 @@ public class Tag {
 
     @Column(nullable = false, unique = true)
     private String name;
+
+    @ManyToMany
+    private Set<Activity> activities;
 
     public Long getId() {
         return id;

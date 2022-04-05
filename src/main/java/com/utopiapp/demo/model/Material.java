@@ -2,10 +2,7 @@ package com.utopiapp.demo.model;
 
 import org.hibernate.annotations.GenericGenerator;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
+import javax.persistence.*;
 
 @Entity
 public class Material {
@@ -19,6 +16,9 @@ public class Material {
 
     @Column(nullable = false)
     private String name;
+
+    @ManyToOne
+    private Activity activity;
 
     public Long getId() {
         return id;

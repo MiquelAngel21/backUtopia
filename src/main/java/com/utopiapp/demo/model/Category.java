@@ -2,12 +2,12 @@ package com.utopiapp.demo.model;
 
 import org.hibernate.annotations.GenericGenerator;
 
-import javax.persistence.Column;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
+import javax.persistence.*;
 import java.time.LocalDate;
+import java.util.Set;
 
-public class Group {
+@Entity
+public class Category {
     @Id
     @GenericGenerator(name = "gen", strategy = "increment")
     @GeneratedValue(generator = "gen")
@@ -24,6 +24,18 @@ public class Group {
 
     @Column(nullable = false)
     private LocalDate createDate;
+
+    @OneToMany(mappedBy = "category")
+    private Set<Kid> kids;
+
+    @OneToMany(mappedBy = "category")
+    private Set<Client> clients;
+
+    @OneToMany(mappedBy = "category")
+    private Set<ActivitySheet> activitySheets;
+
+    @ManyToOne
+    private Club club;
 
     public Long getId() {
         return id;

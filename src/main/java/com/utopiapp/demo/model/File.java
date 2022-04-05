@@ -2,10 +2,7 @@ package com.utopiapp.demo.model;
 
 import org.hibernate.annotations.GenericGenerator;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
+import javax.persistence.*;
 
 @Entity
 public class File {
@@ -22,6 +19,9 @@ public class File {
 
     @Column(nullable = false)
     private String mediaType;
+
+    @ManyToOne
+    private Activity activity;
 
     public Long getId() {
         return id;

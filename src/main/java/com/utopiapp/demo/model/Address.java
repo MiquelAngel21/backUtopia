@@ -2,10 +2,7 @@ package com.utopiapp.demo.model;
 
 import org.hibernate.annotations.GenericGenerator;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
+import javax.persistence.*;
 
 @Entity
 public class Address {
@@ -31,6 +28,9 @@ public class Address {
 
     @Column(nullable = false)
     private double latitude;
+
+    @OneToOne()
+    private Club club;
 
     public Long getId() {
         return id;

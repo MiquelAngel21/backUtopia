@@ -5,9 +5,9 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.persistence.*;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Collection;
+import java.util.Set;
 
 @Entity
 public class Client implements UserDetails {
@@ -37,6 +37,22 @@ public class Client implements UserDetails {
 
     @Enumerated(EnumType.STRING)
     private Role role;
+
+    @ManyToOne()
+    private Category category;
+
+    @ManyToOne()
+    private Club club;
+
+    @OneToMany(mappedBy = "client")
+    private Set<Petition> petitions;
+
+    @OneToMany(mappedBy = "client")
+    private Set<Activity> activities;
+
+    @OneToMany(mappedBy = "client")
+    private Set<ActivitySheet> activitySheets;
+
 
     public Long getId() {
         return id;
