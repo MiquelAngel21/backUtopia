@@ -53,6 +53,15 @@ public class Client implements UserDetails {
     @OneToMany(mappedBy = "client")
     private Set<ActivitySheet> activitySheets;
 
+    public Client(String name, String username, String lastname, String email, String password, LocalDateTime createdDate, Role role) {
+        this.name = name;
+        this.username = username;
+        this.lastname = lastname;
+        this.email = email;
+        this.password = password;
+        this.createdDate = createdDate;
+        this.role = role;
+    }
 
     public Long getId() {
         return id;
