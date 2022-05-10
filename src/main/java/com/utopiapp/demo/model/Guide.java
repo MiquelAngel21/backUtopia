@@ -22,7 +22,7 @@ public class Guide {
     @ManyToOne
     private ActivitySheet activitySheet;
 
-    @OneToOne
+    @ManyToOne
     private Activity activity;
 
     public Long getId() {

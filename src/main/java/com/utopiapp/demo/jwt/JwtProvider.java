@@ -1,5 +1,7 @@
 package com.utopiapp.demo.jwt;
 
+import com.utopiapp.demo.model.Client;
+import com.utopiapp.demo.model.UserMain;
 import io.jsonwebtoken.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -7,7 +9,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
-import java.util.Map;
 
 /**
  * Clase que genera el token y valida que este bien formado y no este expirado
@@ -30,9 +31,9 @@ public class JwtProvider {
      *setExpiration --> Asigna fecha de expiración
      * signWith --> Firma
      */
-    public String generateToken(Map<String, Object> user){
+    public String generateToken(UserMain userMain){
 
-        return Jwts.builder().setClaims(user)
+        return Jwts.builder().setSubject(userMain.getEmail())
                 .signWith(SignatureAlgorithm.HS512, secret)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(new Date().getTime() + expiration * 1000L))
@@ -41,8 +42,7 @@ public class JwtProvider {
 
     //subject --> user
     public String getEmailFromToken(String token){
-        Map<String, Object> user = Jwts.parser().setSigningKey(secret).parseClaimsJws(token).getBody();
-        return (String) user.get("email");
+        return Jwts.parser().setSigningKey(secret).parseClaimsJws(token).getBody().getSubject();
     }
 
     public Boolean validateToken(String token){

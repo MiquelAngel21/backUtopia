@@ -10,7 +10,7 @@ import java.util.Collection;
 import java.util.Set;
 
 @Entity
-public class Client implements UserDetails {
+public class Client{
 
     @Id
     @GenericGenerator(name="gen" , strategy="increment")
@@ -53,6 +53,20 @@ public class Client implements UserDetails {
     @OneToMany(mappedBy = "client")
     private Set<ActivitySheet> activitySheets;
 
+    @OneToMany(mappedBy = "client")
+    private Set<Heart> hearts;
+
+    public Client(Long id, String name, String username, String lastname, String email, String password, LocalDateTime createdDate, Role role) {
+        this.id = id;
+        this.name = name;
+        this.username = username;
+        this.lastname = lastname;
+        this.email = email;
+        this.password = password;
+        this.createdDate = createdDate;
+        this.role = role;
+    }
+
     public Client(String name, String username, String lastname, String email, String password, LocalDateTime createdDate, Role role) {
         this.name = name;
         this.username = username;
@@ -61,6 +75,10 @@ public class Client implements UserDetails {
         this.password = password;
         this.createdDate = createdDate;
         this.role = role;
+    }
+
+    public Client() {
+
     }
 
     public Long getId() {
@@ -119,38 +137,55 @@ public class Client implements UserDetails {
         this.role = role;
     }
 
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return null;
+    public Category getCategory() {
+        return category;
     }
 
-    @Override
-    public String getPassword() {
-        return this.password;
+    public void setCategory(Category category) {
+        this.category = category;
     }
 
-    @Override
-    public String getUsername() {
-        return this.username;
+    public Club getClub() {
+        return club;
     }
 
-    @Override
-    public boolean isAccountNonExpired() {
-        return true;
+    public void setClub(Club club) {
+        this.club = club;
     }
 
-    @Override
-    public boolean isAccountNonLocked() {
-        return true;
+    public Set<Petition> getPetitions() {
+        return petitions;
     }
 
-    @Override
-    public boolean isCredentialsNonExpired() {
-        return true;
+    public void setPetitions(Set<Petition> petitions) {
+        this.petitions = petitions;
     }
 
-    @Override
-    public boolean isEnabled() {
-        return true;
+    public Set<Activity> getActivities() {
+        return activities;
+    }
+
+    public void setActivities(Set<Activity> activities) {
+        this.activities = activities;
+    }
+
+    public Set<ActivitySheet> getActivitySheets() {
+        return activitySheets;
+    }
+
+    public void setActivitySheets(Set<ActivitySheet> activitySheets) {
+        this.activitySheets = activitySheets;
+    }
+
+    public Set<Heart> getLikes() {
+        return hearts;
+    }
+
+    public void setLikes(Set<Heart> hearts) {
+        this.hearts = hearts;
+    }
+
+    public UserMain toUserMain(){
+        return new UserMain(this.id, this.name, this.username, this.lastname, this.email, this.password, this.createdDate, this.role);
     }
 }

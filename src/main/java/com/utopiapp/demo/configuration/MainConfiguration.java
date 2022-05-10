@@ -26,7 +26,7 @@ import org.springframework.web.filter.CorsFilter;
 
 @Configuration
 @EnableWebSecurity
-//con perPostEnabled se usa para indicar a q metodos puede acceder solo el admin
+//con prePostEnabled se usa para indicar a q metodos puede acceder solo el admin
 // Los metodos que no lleven anotación pueden acceder el admin como un generic user
 // @preauthorized solo puede acceder el admin
 @EnableGlobalMethodSecurity(prePostEnabled = true)
@@ -73,15 +73,19 @@ public class MainConfiguration extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        //Desactivamos cookies ya que enviamos un token
-        // cada vez que hacemos una petición
         http.cors().and().csrf().disable()
                 .authorizeRequests()
                 .antMatchers(HttpMethod.GET, "/*").permitAll()
-                //.antMatchers(HttpMethod.POST, "/login", "/register").permitAll()
+                .antMatchers(HttpMethod.POST, "/login", "/register", "/activities").permitAll()
                 .anyRequest().authenticated()
                 .and()
-                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .and()
+                .oauth2Login()
+                .authorizationEndpoint()
+                .baseUri("/authgoogle")
+                .and()
+                .loginPage("/login");
         http.addFilterBefore(jwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
     }
 

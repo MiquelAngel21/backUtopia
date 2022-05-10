@@ -1,13 +1,12 @@
 package com.utopiapp.demo.model;
 
-import org.hibernate.annotations.GenericGenerator;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
-import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.Collection;
 
-public class UserMain {
+public class UserMain implements UserDetails {
     private Long id;
     private String name;
     private String username;
@@ -16,11 +15,25 @@ public class UserMain {
     private String password;
     private LocalDateTime createdDate;
     private Role role;
+    private Collection<? extends GrantedAuthority> authorities;
 
+    public UserMain(Long id, String name, String username, String lastname, String email, String password, LocalDateTime createdDate, Role role) {
+        this.id = id;
+        this.name = name;
+        this.username = username;
+        this.lastname = lastname;
+        this.email = email;
+        this.password = password;
+        this.createdDate = createdDate;
+        this.role = role;
+    }
 
+    public Client toClient(){
+        return new Client(this.id, this.name, this.username, this.lastname, this.email, this.password, this.createdDate, this.role);
+    }
 
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return null;
+        return this.authorities;
     }
 
 
@@ -30,7 +43,27 @@ public class UserMain {
 
 
     public String getUsername() {
-        return this.username;
+        return this.email;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true;
     }
 
     public Long getId() {
