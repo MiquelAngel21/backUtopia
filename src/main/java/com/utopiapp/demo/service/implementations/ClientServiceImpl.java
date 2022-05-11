@@ -1,7 +1,7 @@
 package com.utopiapp.demo.service.implementations;
 
-import com.utopiapp.demo.dto.LoginDTO;
-import com.utopiapp.demo.dto.RegisterDTO;
+import com.utopiapp.demo.dto.LoginDto;
+import com.utopiapp.demo.dto.RegisterDto;
 import com.utopiapp.demo.model.Client;
 import com.utopiapp.demo.model.Role;
 import com.utopiapp.demo.repositories.mysql.ClientRepoMysqlImpl;
@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpSession;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.Map;
 
 @Service
@@ -54,7 +55,7 @@ public class ClientServiceImpl implements ClientService {
     }
 
     @Override
-    public Client addClient(RegisterDTO registerDTO) {
+    public Client addClient(RegisterDto registerDTO) {
         verifyRegisterFormInformation(registerDTO);
         Client client = new Client(
                 registerDTO.getName(),
@@ -71,7 +72,7 @@ public class ClientServiceImpl implements ClientService {
     }
 
     @Override
-    public void verifyRegisterFormInformation(RegisterDTO registerDto) {
+    public void verifyRegisterFormInformation(RegisterDto registerDto) {
         noRareCharactersInText(registerDto.getEmail());
         noRareCharactersInText(registerDto.getPassword());
         noRareCharactersInText(registerDto.getLastname());
@@ -92,7 +93,7 @@ public class ClientServiceImpl implements ClientService {
     }
 
     @Override
-    public void verifyLoginFormInformation(LoginDTO loginDTO) {
+    public void verifyLoginFormInformation(LoginDto loginDTO) {
 
     }
 
@@ -102,5 +103,17 @@ public class ClientServiceImpl implements ClientService {
         OAuth2AuthenticationToken token = (OAuth2AuthenticationToken) sc.getAuthentication();
         OAuth2AuthenticatedPrincipal principal = token.getPrincipal();
         return principal.getAttributes();
+    }
+
+    @Override
+    public Map<String, Object> getClientOnJsonFormat(Client client) {
+        Map<String, Object> currentUserData = new HashMap<>();
+        currentUserData.put("id", client.getId().toString());
+        currentUserData.put("name", client.getName());
+        currentUserData.put("username", client.getUsername());
+        currentUserData.put("lastname", client.getLastname());
+        currentUserData.put("email", client.getEmail());
+        currentUserData.put("role", client.getRole());
+        return currentUserData;
     }
 }

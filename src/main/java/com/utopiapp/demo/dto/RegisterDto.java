@@ -1,6 +1,6 @@
 package com.utopiapp.demo.dto;
 
-public class RegisterDTO {
+public class RegisterDto {
     private String name;
     private String lastname;
     private String email;
@@ -8,7 +8,7 @@ public class RegisterDTO {
     private String username;
     private String role;
 
-    public RegisterDTO(String name, String lastname, String email, String password, String username, String role) {
+    public RegisterDto(String name, String lastname, String email, String password, String username, String role) {
         this.name = name;
         this.lastname = lastname;
         this.email = email;
