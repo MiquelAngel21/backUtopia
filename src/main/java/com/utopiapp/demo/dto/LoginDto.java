@@ -1,10 +1,10 @@
 package com.utopiapp.demo.dto;
 
-public class LoginDTO {
+public class LoginDto {
     private String email;
     private String password;
 
-    public LoginDTO(String email, String password) {
+    public LoginDto(String email, String password) {
         this.email = email;
         this.password = password;
     }

@@ -105,6 +105,22 @@ public class Client{
         return lastname;
     }
 
+    public String getUsername() {
+        return username;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public Set<Heart> getHearts() {
+        return hearts;
+    }
+
+    public void setHearts(Set<Heart> hearts) {
+        this.hearts = hearts;
+    }
+
     public void setLastname(String lastname) {
         this.lastname = lastname;
     }

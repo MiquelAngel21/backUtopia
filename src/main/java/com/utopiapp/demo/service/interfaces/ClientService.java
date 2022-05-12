@@ -1,7 +1,7 @@
 package com.utopiapp.demo.service.interfaces;
 
-import com.utopiapp.demo.dto.LoginDTO;
-import com.utopiapp.demo.dto.RegisterDTO;
+import com.utopiapp.demo.dto.LoginDto;
+import com.utopiapp.demo.dto.RegisterDto;
 import com.utopiapp.demo.model.Client;
 import com.utopiapp.demo.model.Role;
 
@@ -11,9 +11,10 @@ public interface ClientService {
    Client getClientByEmail(String email);
    Client save(Client newClient);
    Role chooseRole(String role);
-   Client addClient(RegisterDTO registerDTO);
-   void verifyRegisterFormInformation(RegisterDTO registerDto);
+   Client addClient(RegisterDto registerDTO);
+   void verifyRegisterFormInformation(RegisterDto registerDto);
    void noRareCharactersInText(String text);
-   void verifyLoginFormInformation(LoginDTO loginDTO);
+   void verifyLoginFormInformation(LoginDto loginDTO);
    Map<String, Object> getUserAttributes();
+   Map<String, Object> getClientOnJsonFormat(Client client);
 }
