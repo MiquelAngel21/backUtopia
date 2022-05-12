@@ -9,5 +9,13 @@ import java.util.Map;
 
 public interface ActivityService {
     List<Map<String, Object>> getAllActivitiesByMostRecentDate();
-    Activity createNewActivity(ActivityDto activityDto, UserMain userMain);
+    List<Map<String, Object>> getActivitiesByUserAndMostRecentDate(Long clientId);
+
+    List<Map<String, Object>> getTopThreeActivitiesByRangeOfDates();
+
+    Activity createNewActivity(Activity activity, ActivityDto activityDto, UserMain userMain);
+
+    Activity updateAnExistingActivity(Long id, Activity activity, ActivityDto activityDto, UserMain userMain);
+
+    void deleteActivity(Long id);
 }

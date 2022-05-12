@@ -150,12 +150,4 @@ public class Activity {
     public void setFiles(Set<File> files) {
         this.files = files;
     }
-
-    public Set<Heart> getLikes() {
-        return hearts;
-    }
-
-    public void setLikes(Set<Heart> hearts) {
-        this.hearts = hearts;
-    }
 }
