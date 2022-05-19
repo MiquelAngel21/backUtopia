@@ -6,6 +6,9 @@ import com.utopiapp.demo.model.Activity;
 import com.utopiapp.demo.model.Tag;
 import com.utopiapp.demo.model.UserMain;
 import com.utopiapp.demo.service.interfaces.ActivityService;
+import com.utopiapp.demo.service.interfaces.TagService;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
@@ -48,11 +51,9 @@ public class ActivityController {
 
     @PostMapping(value = "/new-activity", produces = {"application/json"})
     @ResponseBody
-    public ResponseEntity<?> createActivity(
-            @Valid
+    public Activity createActivity(
             @RequestBody ActivityDto activityDto,
-            Authentication authentication,
-            BindingResult bindingResult
+            Authentication authentication
     ){
         Activity activity = new Activity();
         UserMain userMain = (UserMain) authentication.getPrincipal();
@@ -78,19 +79,6 @@ public class ActivityController {
     ){
         activityService.deleteActivity(id);
         return new ResponseEntity<>(new Message("Activity deleted successfully"), HttpStatus.NO_CONTENT);
-        if (bindingResult.hasErrors()) {
-            return new ResponseEntity<>(new Message("Algún camp és incompleto o es incorrecto"), HttpStatus.BAD_REQUEST);
-        }
-        if (activityDto.getMaterials().size() > 3) {
-            return new ResponseEntity<>(new Message("Només pots adjuntar 3 fitxers com a màxim"), HttpStatus.BAD_REQUEST);
-        }
-        try {
-            UserMain userMain = (UserMain) authentication.getPrincipal();
-            activityService.createNewActivity(activityDto, userMain);
-            return new ResponseEntity<>(new Message("OK"), HttpStatus.OK);
-        } catch (Exception e) {
-            return new ResponseEntity<>(new Message(e.getMessage()), HttpStatus.CONFLICT);
-        }
     }
 
     @GetMapping(value = "create-activity", produces = {"application/json"})
