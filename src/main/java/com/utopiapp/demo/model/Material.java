@@ -8,7 +8,7 @@ import javax.persistence.*;
 public class Material {
     @Id
     @GenericGenerator(name="gen" , strategy="increment")
-    @GeneratedValue(generator="gen")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(nullable = false)
@@ -18,6 +18,7 @@ public class Material {
     private String name;
 
     @ManyToOne
+    @JoinColumn(name = "activity_id")
     private Activity activity;
 
     public Long getId() {
@@ -42,5 +43,13 @@ public class Material {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public Activity getActivity() {
+        return activity;
+    }
+
+    public void setActivity(Activity activity) {
+        this.activity = activity;
     }
 }

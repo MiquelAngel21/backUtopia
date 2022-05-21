@@ -14,7 +14,7 @@ public class Client{
 
     @Id
     @GenericGenerator(name="gen" , strategy="increment")
-    @GeneratedValue(generator="gen")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(nullable = false)

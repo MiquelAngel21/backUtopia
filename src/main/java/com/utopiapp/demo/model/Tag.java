@@ -1,22 +1,25 @@
 package com.utopiapp.demo.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
 public class Tag {
     @Id
     @GenericGenerator(name="gen" , strategy="increment")
-    @GeneratedValue(generator="gen")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(nullable = false, unique = true)
     private String name;
 
-    @ManyToMany
-    private Set<Activity> activities;
+    @ManyToMany(mappedBy = "tags", cascade = { CascadeType.MERGE })
+    @JsonIgnore
+    private Set<Activity> activities = new HashSet<>();
 
     public Long getId() {
         return id;
@@ -32,5 +35,13 @@ public class Tag {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public Set<Activity> getActivities() {
+        return activities;
+    }
+
+    public void setActivities(Set<Activity> activities) {
+        this.activities = activities;
     }
 }

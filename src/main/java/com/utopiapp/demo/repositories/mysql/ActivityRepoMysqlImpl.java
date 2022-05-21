@@ -14,4 +14,6 @@ public interface ActivityRepoMysqlImpl extends JpaRepository<Activity, Long> {
 
     @Query("SELECT a FROM Heart h, Activity a WHERE h.activity.id = a.id AND a.createdDate > :startRange AND a.createdDate < :endRange GROUP BY h.activity.id ORDER BY COUNT(h.activity.id) DESC, a.createdDate DESC")
     List<Activity> getTopThreeFromRangeOfDates(@Param("startRange") LocalDateTime startRange, @Param("endRange") LocalDateTime endRange);
+    List<Activity> findAllByOrderByCreatedDateAsc();
+    Activity getActivityByName(String name);
 }

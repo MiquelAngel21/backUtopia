@@ -8,19 +8,20 @@ import javax.persistence.*;
 public class File {
     @Id
     @GenericGenerator(name="gen" , strategy="increment")
-    @GeneratedValue(generator="gen")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private byte[] content;
 
     @Column(nullable = false)
     private String mediaType;
 
     @ManyToOne
+    @JoinColumn(name = "activity_id")
     private Activity activity;
 
     public Long getId() {
@@ -53,5 +54,13 @@ public class File {
 
     public void setMediaType(String mediaType) {
         this.mediaType = mediaType;
+    }
+
+    public Activity getActivity() {
+        return activity;
+    }
+
+    public void setActivity(Activity activity) {
+        this.activity = activity;
     }
 }

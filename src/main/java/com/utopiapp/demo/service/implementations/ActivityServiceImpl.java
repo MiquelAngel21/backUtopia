@@ -6,6 +6,8 @@ import com.utopiapp.demo.model.Heart;
 import com.utopiapp.demo.model.UserMain;
 import com.utopiapp.demo.repositories.mysql.ActivityRepoMysqlImpl;
 import com.utopiapp.demo.service.interfaces.ActivityService;
+import com.utopiapp.demo.service.interfaces.MaterialService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -17,11 +19,14 @@ import java.util.*;
 @Service
 public class ActivityServiceImpl implements ActivityService {
 
-    private final ActivityRepoMysqlImpl activityRepoMysql;
+    @Autowired
+    MaterialServiceImpl materialService;
 
-    public ActivityServiceImpl(ActivityRepoMysqlImpl activityRepoMysql) {
-        this.activityRepoMysql = activityRepoMysql;
-    }
+    @Autowired
+    ActivityRepoMysqlImpl activityRepoMysql;
+
+    @Autowired
+    FileServiceImpl fileService;
 
     @Override
     public List<Map<String, Object>> getAllActivitiesByMostRecentDate() {
@@ -125,6 +130,24 @@ public class ActivityServiceImpl implements ActivityService {
         return activityJson;
     }
 
+    @Override
+    public Activity createNewActivity(ActivityDto activityDto, Client user) {
+        System.out.println(activityDto);
+        Activity activity = new Activity(activityDto.getName(), activityDto.isEvent(), activityDto.getDescription(), LocalDateTime.now(), user);
+        System.out.println(activity);
+        Activity activityCreated = activityRepoMysql.save(activity);
+        activityCreated.setFiles(activityDto.getFiles());
+        activityCreated.setTags(activityDto.getTags());
+        materialService.saveMaterial(activityDto.getMaterials(), activityCreated);
+        fileService.saveFiles(activityDto.getFiles(), activityCreated);
+        return activityRepoMysql.save(activityCreated);
+    }
+
+
+    @Override
+    public Activity getActivityByName(String name) {
+        Activity activity = activityRepoMysql.getActivityByName(name);
+        return activity;
     private List<Map<String, Object>> heartsToJson(Set<Heart> hearts) {
         Map<String, Object> heartJson = new HashMap<>();
         List<Map<String, Object>> allHeartsByActivity = new ArrayList<>();

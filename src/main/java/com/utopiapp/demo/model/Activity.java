@@ -12,10 +12,10 @@ import java.util.Set;
 public class Activity {
     @Id
     @GenericGenerator(name="gen" , strategy="increment")
-    @GeneratedValue(generator="gen")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String name;
 
     @Column(nullable = false)
@@ -34,8 +34,9 @@ public class Activity {
     @JsonIgnore
     private Client client;
 
-    @ManyToMany(mappedBy = "activities")
-    private Set<Tag> tags;
+    @ManyToMany(cascade = { CascadeType.MERGE })
+    @JsonIgnore
+    private Set<Tag> tags = new HashSet<>();
 
     @OneToMany(mappedBy = "activity")
     private Set<Material> materials;
@@ -56,6 +57,16 @@ public class Activity {
         this.tags = tags;
         this.materials = materials;
         this.files = files;
+        this.hearts = new HashSet<>();
+    }
+
+    public Activity(String name, boolean isEvent, String description, LocalDateTime createdDate, Client client) {
+        this.name = name;
+        this.isEvent = isEvent;
+        this.description = description;
+        this.createdDate = createdDate;
+        this.guides = new HashSet<>();
+        this.client = client;
         this.hearts = new HashSet<>();
     }
 
