@@ -7,6 +7,9 @@ import com.utopiapp.demo.model.Tag;
 import com.utopiapp.demo.model.UserMain;
 import com.utopiapp.demo.service.interfaces.ActivityService;
 import com.utopiapp.demo.service.interfaces.TagService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -14,6 +17,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -30,8 +34,20 @@ public class ActivityController {
 
     @GetMapping(value = "/activities", produces = {"application/json"})
     @ResponseBody
-    public List<Map<String, Object>> getActivities(){
-        return activityService.getAllActivitiesByMostRecentDate();
+    public Map<String, Object> getActivities(
+            @RequestParam int start,
+            @RequestParam int length
+    ){
+        Pageable paging = PageRequest.of(start/length, length);
+        Page<Activity> pageResult = activityService.getAllActivitiesByMostRecentDate(paging);
+
+        long total = pageResult.getTotalElements();
+        List<Activity> list10 = pageResult.getContent();
+
+        Map<String, Object> json = new HashMap<>();
+        json.put("data", list10);
+        json.put("recordsTotal", total);
+        return json;
     }
 
     @GetMapping(value = "/my-activities", produces = {"application/json"})
@@ -81,7 +97,7 @@ public class ActivityController {
         return new ResponseEntity<>(new Message("Activity deleted successfully"), HttpStatus.NO_CONTENT);
     }
 
-    @GetMapping(value = "create-activity", produces = {"application/json"})
+    @GetMapping(value = "new-activity", produces = {"application/json"})
     @ResponseBody
     public ResponseEntity<?> getCreateActivity(){
         try{
@@ -90,5 +106,13 @@ public class ActivityController {
         } catch (Exception e) {
             return new ResponseEntity<>(e, HttpStatus.NOT_FOUND);
         }
+    }
+
+    @GetMapping(value = "/activities/{id}", produces = {"application/json"})
+    @ResponseBody
+    public Map<String, Object> getActivity(
+            @PathVariable Long id
+    ){
+        return activityService.getOneActivityById(id);
     }
 }

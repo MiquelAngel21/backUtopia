@@ -34,10 +34,22 @@ public class Activity {
     @JsonIgnore
     private Client client;
 
-    @ManyToMany(mappedBy = "activities")
+    @ManyToMany
+    @JoinTable(
+            joinColumns=
+            @JoinColumn(name="activities_id", referencedColumnName="id"),
+            inverseJoinColumns=
+            @JoinColumn(name="tags_id", referencedColumnName="id")
+    )
     private Set<Tag> tags;
 
-    @OneToMany(mappedBy = "activity")
+    @ManyToMany
+    @JoinTable(
+            joinColumns=
+            @JoinColumn(name="activities_id", referencedColumnName="id"),
+            inverseJoinColumns=
+            @JoinColumn(name="materials_id", referencedColumnName="id")
+    )
     private Set<Material> materials;
 
     @OneToMany(mappedBy = "activity")

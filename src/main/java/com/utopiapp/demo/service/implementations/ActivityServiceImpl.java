@@ -1,11 +1,14 @@
 package com.utopiapp.demo.service.implementations;
 
 import com.utopiapp.demo.dto.ActivityDto;
-import com.utopiapp.demo.model.Activity;
-import com.utopiapp.demo.model.Heart;
-import com.utopiapp.demo.model.UserMain;
+import com.utopiapp.demo.dto.FileDto;
+import com.utopiapp.demo.model.*;
 import com.utopiapp.demo.repositories.mysql.ActivityRepoMysqlImpl;
+import com.utopiapp.demo.repositories.mysql.FileRepoMysqlImpl;
+import com.utopiapp.demo.repositories.mysql.MaterialRepoMysqlImpl;
 import com.utopiapp.demo.service.interfaces.ActivityService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -18,15 +21,18 @@ import java.util.*;
 public class ActivityServiceImpl implements ActivityService {
 
     private final ActivityRepoMysqlImpl activityRepoMysql;
+    private final FileRepoMysqlImpl fileRepoMysql;
+    private final MaterialRepoMysqlImpl materialRepoMysql;
 
-    public ActivityServiceImpl(ActivityRepoMysqlImpl activityRepoMysql) {
+    public ActivityServiceImpl(ActivityRepoMysqlImpl activityRepoMysql, FileRepoMysqlImpl fileRepoMysql, MaterialRepoMysqlImpl materialRepoMysql) {
         this.activityRepoMysql = activityRepoMysql;
+        this.fileRepoMysql = fileRepoMysql;
+        this.materialRepoMysql = materialRepoMysql;
     }
 
     @Override
-    public List<Map<String, Object>> getAllActivitiesByMostRecentDate() {
-        List<Activity> activities = activityRepoMysql.findAllByOrderByCreatedDateDesc();
-        return convertActivityListIntoJsonList(activities);
+    public Page<Activity> getAllActivitiesByMostRecentDate(Pageable paging) {
+        return activityRepoMysql.findAllByOrderByCreatedDateDesc(paging);
     }
 
     @Override
@@ -47,22 +53,22 @@ public class ActivityServiceImpl implements ActivityService {
         LocalDateTime startofAllHistory = LocalDateTime.parse("0001-01-01T00:00:00.000");
         LocalDateTime endofAllHistory = LocalDateTime.now();
 
-        List<Activity> activities = activityRepoMysql.getTopThreeFromRangeOfDates(startofAllHistory, endofAllHistory).subList(0,3);
+        List<Activity> activities = activityRepoMysql.getTopThreeFromRangeOfDates(startofAllHistory, endofAllHistory).subList(0, 3);
         return convertActivityListIntoJsonList(activities);
     }
 
     private LocalDateTime getLastDayOfTheMonth(LocalDateTime startMonthDayRange) {
-        int endMonthDay = getDaysOfMonthByNumericRepresentationAndYear(startMonthDayRange.getMonthValue()-1, startMonthDayRange.getYear());
+        int endMonthDay = getDaysOfMonthByNumericRepresentationAndYear(startMonthDayRange.getMonthValue() - 1, startMonthDayRange.getYear());
         return startMonthDayRange.withDayOfMonth(endMonthDay);
     }
 
     private LocalDateTime getFirstDayOfTheMonth() {
-        LocalDateTime startMonthDayRange = LocalDateTime.parse(LocalDate.now()+"T00:00:00.000");
+        LocalDateTime startMonthDayRange = LocalDateTime.parse(LocalDate.now() + "T00:00:00.000");
         return startMonthDayRange.withDayOfMonth(1);
     }
 
     private LocalDateTime getLastDayOfTheWeek(LocalDateTime startDateRange) {
-        LocalDateTime endDateRange =  startDateRange.plusDays(8);
+        LocalDateTime endDateRange = startDateRange.plusDays(8);
         endDateRange = endDateRange.withHour(0);
         endDateRange = endDateRange.withMinute(0);
         endDateRange = endDateRange.withSecond(0);
@@ -71,7 +77,7 @@ public class ActivityServiceImpl implements ActivityService {
     }
 
     private LocalDateTime getFirstDayOfTheWeek() {
-        LocalDateTime now = LocalDateTime.parse(LocalDate.now()+"T23:59:59.9999");
+        LocalDateTime now = LocalDateTime.parse(LocalDate.now() + "T23:59:59.9999");
         TemporalField fieldISO = WeekFields.of(Locale.FRENCH).dayOfWeek();
         LocalDateTime startDateRange = now.with(fieldISO, 1);
         return startDateRange;
@@ -84,10 +90,63 @@ public class ActivityServiceImpl implements ActivityService {
         activity.setDescription(activityDto.getDescription());
         activity.setCreatedDate(LocalDateTime.now());
         activity.setClient(userMain.toClient());
+
         activity.setTags(activityDto.getTags());
-        activity.setMaterials(activityDto.getMaterials());
-        activity.setFiles(activityDto.getFiles());
-        return activityRepoMysql.save(activity);
+        activity.setHearts(new HashSet<>());
+
+        addMaterialsToActivity(activity, activityDto);
+
+        activity = activityRepoMysql.save(activity);
+
+        addFilesToActivity(activity, activityDto);
+
+
+        return activity;
+    }
+
+    private void addMaterialsToActivity(Activity activity, ActivityDto activityDto) {
+        Set<Material> finalMaterial = new HashSet<>();
+        for (Material material : activityDto.getMaterials()) {
+            Material materialAlreadyExists = materialRepoMysql.findByNameAndAmount(material.getName(), material.getAmount());
+
+            if (materialAlreadyExists != null) {
+                finalMaterial.add(materialAlreadyExists);
+            } else {
+                noRareCharactersInText(material.getName());
+                if (material.getAmount() > 0) {
+                    finalMaterial.add(material);
+                    materialRepoMysql.save(material);
+                } else {
+                    throw new RuntimeException("La quantitat ha de ser superior a 0");
+                }
+
+            }
+        }
+        activity.setMaterials(finalMaterial);
+    }
+
+    public void noRareCharactersInText(String text) {
+        String newText = text.replaceAll("['*\\-\"\\\\/\\[\\]?¿!¡<>=]*", "");
+        if (!newText.equals(text)) {
+            throw new RuntimeException("No rare characters");
+        }
+    }
+
+    private void addFilesToActivity(Activity activity, ActivityDto activityDto) {
+        if (activityDto.getFiles().size() > 0) {
+            Set<FileDto> DtoFiles = activityDto.getFiles();
+            Set<File> files = new HashSet<>();
+            for (FileDto fileDto : DtoFiles) {
+                File file = new File();
+                file.setContent(Base64.getDecoder().decode(fileDto.getContent()));
+                file.setActivity(activity);
+                file.setName(fileDto.getName());
+                file.setMediaType(fileDto.getMediaType());
+                fileRepoMysql.save(file);
+                files.add(file);
+            }
+            activity.setFiles(files);
+        }
     }
 
     @Override
@@ -101,9 +160,32 @@ public class ActivityServiceImpl implements ActivityService {
         activityRepoMysql.delete(activityRepoMysql.getById(id));
     }
 
+    @Override
+    public Map<String, Object> getOneActivityById(Long id) {
+        Activity activity = activityRepoMysql.getById(id);
+        return createActivityJson(activity);
+    }
+
+    //@Override
+    /*public List<String[]> toListOfArrayOfStrings(List<Activity> list10) {
+
+        List<String[]> result = new ArrayList<>();
+        for (Activity activity : list10) {
+            String[] objects = new String[7];
+            objects[0] = activity.getName();
+            objects[1] = activity.getDescription();
+            objects[2] = activity.getClient().getEmail();
+            objects[3] = activity.getCreatedDate().toString();
+            //objects[4] = activity.getTags()
+            result.add(objects);
+        }
+        return result;*/
+
+    //}
+
     private List<Map<String, Object>> convertActivityListIntoJsonList(List<Activity> activities) {
         List<Map<String, Object>> allActivitiesJson = new ArrayList<>();
-        for (Activity activity : activities){
+        for (Activity activity : activities) {
             allActivitiesJson.add(createActivityJson(activity));
         }
         return allActivitiesJson;
@@ -117,7 +199,7 @@ public class ActivityServiceImpl implements ActivityService {
         activityJson.put("description", activity.getDescription());
         activityJson.put("createdDate", activity.getCreatedDate());
         activityJson.put("guides", activity.getGuide());
-        activityJson.put("client", activity.getClient().getId());
+        activityJson.put("client", activity.getClient());
         activityJson.put("tags", activity.getTags());
         activityJson.put("materials", activity.getMaterials());
         activityJson.put("files", activity.getFiles());
@@ -128,7 +210,7 @@ public class ActivityServiceImpl implements ActivityService {
     private List<Map<String, Object>> heartsToJson(Set<Heart> hearts) {
         Map<String, Object> heartJson = new HashMap<>();
         List<Map<String, Object>> allHeartsByActivity = new ArrayList<>();
-        for (Heart heart : hearts){
+        for (Heart heart : hearts) {
             heartJson.put("id", heart.getId());
             heartJson.put("activityId", heart.getActivity().getId());
             heartJson.put("clientId", heart.getClient().getId());
@@ -137,8 +219,8 @@ public class ActivityServiceImpl implements ActivityService {
         return allHeartsByActivity;
     }
 
-    private static int getDaysOfMonthByNumericRepresentationAndYear(int mes, int año){
-        switch(mes){
+    private static int getDaysOfMonthByNumericRepresentationAndYear(int mes, int año) {
+        switch (mes) {
             case 0:
             case 2:
             case 4:
@@ -153,8 +235,8 @@ public class ActivityServiceImpl implements ActivityService {
             case 10:
                 return 30;
             case 1:
-                if ( ((año%100 == 0) && (año%400 == 0)) ||
-                        ((año%100 != 0) && (año%  4 == 0))   )
+                if (((año % 100 == 0) && (año % 400 == 0)) ||
+                        ((año % 100 != 0) && (año % 4 == 0)))
                     return 29;
                 else
                     return 28;

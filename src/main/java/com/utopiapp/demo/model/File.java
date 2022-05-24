@@ -1,5 +1,6 @@
 package com.utopiapp.demo.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
@@ -14,13 +15,14 @@ public class File {
     @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "longblob")
     private byte[] content;
 
     @Column(nullable = false)
     private String mediaType;
 
     @ManyToOne
+    @JsonIgnore
     private Activity activity;
 
     public Long getId() {
@@ -53,5 +55,13 @@ public class File {
 
     public void setMediaType(String mediaType) {
         this.mediaType = mediaType;
+    }
+
+    public Activity getActivity() {
+        return activity;
+    }
+
+    public void setActivity(Activity activity) {
+        this.activity = activity;
     }
 }

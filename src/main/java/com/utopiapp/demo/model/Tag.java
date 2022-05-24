@@ -1,5 +1,6 @@
 package com.utopiapp.demo.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
@@ -15,7 +16,8 @@ public class Tag {
     @Column(nullable = false, unique = true)
     private String name;
 
-    @ManyToMany
+    @ManyToMany(mappedBy = "tags")
+    @JsonIgnore
     private Set<Activity> activities;
 
     public Long getId() {

@@ -1,6 +1,8 @@
 package com.utopiapp.demo.repositories.mysql;
 
 import com.utopiapp.demo.model.Activity;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -9,7 +11,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public interface ActivityRepoMysqlImpl extends JpaRepository<Activity, Long> {
-    List<Activity> findAllByOrderByCreatedDateDesc();
+    Page<Activity> findAllByOrderByCreatedDateDesc(Pageable pageable);
     List<Activity> findAllByClientOrderByCreatedDateDesc(Long clientId);
 
     @Query("SELECT a FROM Heart h, Activity a WHERE h.activity.id = a.id AND a.createdDate > :startRange AND a.createdDate < :endRange GROUP BY h.activity.id ORDER BY COUNT(h.activity.id) DESC, a.createdDate DESC")

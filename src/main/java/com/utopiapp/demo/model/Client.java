@@ -1,5 +1,6 @@
 package com.utopiapp.demo.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.hibernate.annotations.GenericGenerator;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -30,6 +31,7 @@ public class Client{
     private String email;
 
     @Column(nullable = false)
+    @JsonIgnore
     private String password;
 
     @Column(nullable = false)
@@ -39,21 +41,27 @@ public class Client{
     private Role role;
 
     @ManyToOne()
+    @JsonIgnore
     private Category category;
 
     @ManyToOne()
+    @JsonIgnore
     private Club club;
 
     @OneToMany(mappedBy = "client")
+    @JsonIgnore
     private Set<Petition> petitions;
 
     @OneToMany(mappedBy = "client")
+    @JsonIgnore
     private Set<Activity> activities;
 
     @OneToMany(mappedBy = "client")
+    @JsonIgnore
     private Set<ActivitySheet> activitySheets;
 
     @OneToMany(mappedBy = "client")
+    @JsonIgnore
     private Set<Heart> hearts;
 
     public Client(Long id, String name, String username, String lastname, String email, String password, LocalDateTime createdDate, Role role) {

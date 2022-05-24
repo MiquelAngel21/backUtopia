@@ -1,8 +1,10 @@
 package com.utopiapp.demo.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
+import java.util.Set;
 
 @Entity
 public class Material {
@@ -17,8 +19,9 @@ public class Material {
     @Column(nullable = false)
     private String name;
 
-    @ManyToOne
-    private Activity activity;
+    @ManyToMany(mappedBy = "materials")
+    @JsonIgnore
+    private Set<Activity> activities;
 
     public Long getId() {
         return id;
@@ -42,5 +45,13 @@ public class Material {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public Set<Activity> getActivities() {
+        return activities;
+    }
+
+    public void setActivities(Set<Activity> activities) {
+        this.activities = activities;
     }
 }
