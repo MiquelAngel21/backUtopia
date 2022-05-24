@@ -21,6 +21,8 @@ public interface ActivityService {
     Activity updateAnExistingActivity(Long id, Activity activity, ActivityDto activityDto, UserMain userMain);
 
     void deleteActivity(Long id);
+    Activity createNewActivity(ActivityDto activityDto, Client userMain);
+    Activity getActivityByName(String name);
 
     Map<String, Object> getOneActivityById(Long id);
 }

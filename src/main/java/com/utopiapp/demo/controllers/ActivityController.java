@@ -26,10 +26,12 @@ public class ActivityController {
 
     private final ActivityService activityService;
     private final TagService tagService;
+    private final ClientService clientService;
 
-    public ActivityController(ActivityService activityService, TagService tagService) {
+    public ActivityController(ActivityService activityService, TagService tagService, ClientService clientService) {
         this.activityService = activityService;
         this.tagService = tagService;
+        this.clientService = clientService;
     }
 
     @GetMapping(value = "/activities", produces = {"application/json"})
@@ -78,14 +80,29 @@ public class ActivityController {
 
     @PutMapping(value = "/update-activity/{id}", produces = {"application/json"})
     @ResponseBody
-    public Activity updateActivity(
+    public ResponseEntity<?> updateActivity(
             @RequestBody ActivityDto activityDto,
             @PathVariable Long id,
-            Authentication authentication
+            Authentication authentication,
+            BindingResult bindingResult
     ){
-        Activity activity = new Activity();
-        UserMain userMain = (UserMain) authentication.getPrincipal();
-        return activityService.updateAnExistingActivity(id, activity, activityDto, userMain);
+        try {
+            Activity activity = new Activity();
+            UserMain userMain = (UserMain) authentication.getPrincipal();
+
+            if (bindingResult.hasErrors()) {
+                return new ResponseEntity<>(new Message("Algún camp és incompleto o es incorrecto"), HttpStatus.BAD_REQUEST);
+            }
+            if (activityDto.getFiles().size() > 3) {
+                return new ResponseEntity<>(new Message("Només pots adjuntar 3 fitxers com a màxim"), HttpStatus.BAD_REQUEST);
+            }
+            if (activityService.getActivityByName(activityDto.getName()) != null) {
+                return new ResponseEntity<>(new Message("Aquest nom d'activitat ja està en ús"), HttpStatus.BAD_REQUEST);
+            }
+            return new ResponseEntity<>(activityService.updateAnExistingActivity(id, activity, activityDto, userMain),HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.CONFLICT);
+        }
     }
 
     @DeleteMapping(value = "/activity/{id}", produces = {"application/json"})
@@ -97,7 +114,7 @@ public class ActivityController {
         return new ResponseEntity<>(new Message("Activity deleted successfully"), HttpStatus.NO_CONTENT);
     }
 
-    @GetMapping(value = "new-activity", produces = {"application/json"})
+    @GetMapping(value = "create-activity", produces = {"application/json"})
     @ResponseBody
     public ResponseEntity<?> getCreateActivity(){
         try{
