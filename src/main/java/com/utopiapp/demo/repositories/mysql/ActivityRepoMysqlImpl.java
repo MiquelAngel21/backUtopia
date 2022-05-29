@@ -1,6 +1,7 @@
 package com.utopiapp.demo.repositories.mysql;
 
 import com.utopiapp.demo.model.Activity;
+import com.utopiapp.demo.model.Client;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -16,4 +17,5 @@ public interface ActivityRepoMysqlImpl extends JpaRepository<Activity, Long> {
     List<Activity> getTopThreeFromRangeOfDates(@Param("startRange") LocalDateTime startRange, @Param("endRange") LocalDateTime endRange);
     List<Activity> findAllByOrderByCreatedDateAsc();
     Activity getActivityByName(String name);
+    Activity findByClientAndId(Client currentUser, Long id);
 }

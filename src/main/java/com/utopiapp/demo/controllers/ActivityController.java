@@ -18,9 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.net.http.HttpResponse;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @RestController
 public class ActivityController {
@@ -56,6 +54,17 @@ public class ActivityController {
         return activityService.getTopThreeActivitiesByRangeOfDates();
     }
 
+    @GetMapping(value = "/new-activity", produces = {"application/json"})
+    @ResponseBody
+    public ResponseEntity<?> getCreateActivity() {
+        try {
+            List<Tag> tags = tagService.getAll();
+            return new ResponseEntity<>(tags, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(e, HttpStatus.NOT_FOUND);
+        }
+    }
+
     @PostMapping(value = "/new-activity", produces = {"application/json"})
     @ResponseBody
     public ResponseEntity<?> createActivity(
@@ -82,11 +91,32 @@ public class ActivityController {
         }
             return new ResponseEntity<>(activityService.createNewActivity(activity, activityDto, userMain), HttpStatus.OK);
         } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.CONFLICT);
+            return new ResponseEntity<>(new Message("Error creant l'activitat"),HttpStatus.CONFLICT);
         }
     }
 
-    @PutMapping(value = "/update-activity/{id}", produces = {"application/json"})
+    @GetMapping(value = "/activities/{id}", produces = {"application/json"})
+    @ResponseBody
+    public ResponseEntity<?> getViewActivity(
+            @PathVariable Long id,
+            Authentication authentication
+    ) {
+        try {
+            UserMain userMain = (UserMain) authentication.getPrincipal();
+            Client currentUser = clientService.getClientByEmail(userMain.getEmail());
+            List<Tag> tags = tagService.getAll();
+            Map<String, Object> viewActivityDataJson = activityService.getActivityDataJson(id);
+            viewActivityDataJson.put("tags", tags);
+            Activity activity = activityService.getActivityById(id);
+            boolean isOwner = activityService.isOwner(currentUser, activity.getId());
+            viewActivityDataJson.put("isOwner", isOwner);
+            return new ResponseEntity<>(viewActivityDataJson, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(e, HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @PutMapping(value ="/activities/{id}", produces = {"application/json"})
     @ResponseBody
     public ResponseEntity<?> updateActivity(
             @RequestBody ActivityDto activityDto,
@@ -97,7 +127,10 @@ public class ActivityController {
         try {
             Activity activity = new Activity();
             UserMain userMain = (UserMain) authentication.getPrincipal();
-
+            Client currentUser = clientService.getClientByEmail(userMain.getEmail());
+            if (!activityService.isOwner(currentUser, activityDto.getId())){
+                return new ResponseEntity<>(new Message("No tens permisos per realitzar aquesta acció"), HttpStatus.UNAUTHORIZED);
+            }
             if (bindingResult.hasErrors()) {
                 return new ResponseEntity<>(new Message("Algún camp és incompleto o es incorrecto"), HttpStatus.BAD_REQUEST);
             }
@@ -107,29 +140,27 @@ public class ActivityController {
             if (activityService.getActivityByName(activityDto.getName()) != null) {
                 return new ResponseEntity<>(new Message("Aquest nom d'activitat ja està en ús"), HttpStatus.BAD_REQUEST);
             }
-            return new ResponseEntity<>(activityService.updateAnExistingActivity(id, activity, activityDto, userMain),HttpStatus.OK);
+            activityService.updateAnExistingActivity(id, activity, activityDto, userMain);
+            return new ResponseEntity<>("Activitat editada correctament!",HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.CONFLICT);
         }
     }
 
-    @DeleteMapping(value = "/activity/{id}", produces = {"application/json"})
+    @DeleteMapping(value = "/activities/{id}", produces = {"application/json"})
     @ResponseBody
-    public ResponseEntity<?> deleteActivity(
-            @PathVariable Long id
-    ){
-        activityService.deleteActivity(id);
-        return new ResponseEntity<>(new Message("Activity deleted successfully"), HttpStatus.NO_CONTENT);
-    }
-
-    @GetMapping(value = "create-activity", produces = {"application/json"})
-    @ResponseBody
-    public ResponseEntity<?> getCreateActivity() {
+    public ResponseEntity<?> deleteActivity(@RequestBody ActivityDto activityDto, Authentication authentication){
         try {
-            List<Tag> tags = tagService.getAll();
-            return new ResponseEntity<>(tags, HttpStatus.OK);
-        } catch (Exception e) {
-            return new ResponseEntity<>(e, HttpStatus.NOT_FOUND);
+            UserMain userMain = (UserMain) authentication.getPrincipal();
+            Client currentUser = clientService.getClientByEmail(userMain.getEmail());
+            if (!activityService.isOwner(currentUser, activityDto.getId())){
+                return new ResponseEntity<>(new Message("No tens permisos per realitzar aquesta acció"), HttpStatus.UNAUTHORIZED);
+            }
+            activityService.deleteActivity(activityDto.getId());
+            return new ResponseEntity<>(new Message("Activitat esborrada amb èxit!"), HttpStatus.OK);
+        }catch (Exception e){
+            return new ResponseEntity<>(new Message("Error esborrant l'activitat"), HttpStatus.BAD_REQUEST);
         }
+
     }
 }

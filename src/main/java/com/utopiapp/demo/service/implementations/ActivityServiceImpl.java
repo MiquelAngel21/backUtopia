@@ -1,12 +1,9 @@
 package com.utopiapp.demo.service.implementations;
 
 import com.utopiapp.demo.dto.ActivityDto;
-import com.utopiapp.demo.model.Activity;
-import com.utopiapp.demo.model.Heart;
-import com.utopiapp.demo.model.UserMain;
+import com.utopiapp.demo.model.*;
 import com.utopiapp.demo.repositories.mysql.ActivityRepoMysqlImpl;
 import com.utopiapp.demo.service.interfaces.ActivityService;
-import com.utopiapp.demo.service.interfaces.MaterialService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -27,6 +24,9 @@ public class ActivityServiceImpl implements ActivityService {
 
     @Autowired
     FileServiceImpl fileService;
+
+    @Autowired
+    TagServiceImpl tagService;
 
     @Override
     public List<Map<String, Object>> getAllActivitiesByMostRecentDate() {
@@ -92,7 +92,10 @@ public class ActivityServiceImpl implements ActivityService {
         activity.setTags(activityDto.getTags());
         activity.setMaterials(activityDto.getMaterials());
         activity.setFiles(activityDto.getFiles());
-        return activityRepoMysql.save(activity);
+        Activity activityCreated = activityRepoMysql.save(activity);
+        materialService.saveMaterial(activityDto.getMaterials(), activityCreated);
+        fileService.saveFiles(activityDto.getFiles(), activityCreated);
+        return activityCreated;
     }
 
     @Override
@@ -130,24 +133,42 @@ public class ActivityServiceImpl implements ActivityService {
         return activityJson;
     }
 
-    @Override
-    public Activity createNewActivity(ActivityDto activityDto, Client user) {
-        System.out.println(activityDto);
-        Activity activity = new Activity(activityDto.getName(), activityDto.isEvent(), activityDto.getDescription(), LocalDateTime.now(), user);
-        System.out.println(activity);
-        Activity activityCreated = activityRepoMysql.save(activity);
-        activityCreated.setFiles(activityDto.getFiles());
-        activityCreated.setTags(activityDto.getTags());
-        materialService.saveMaterial(activityDto.getMaterials(), activityCreated);
-        fileService.saveFiles(activityDto.getFiles(), activityCreated);
-        return activityRepoMysql.save(activityCreated);
-    }
-
 
     @Override
     public Activity getActivityByName(String name) {
         Activity activity = activityRepoMysql.getActivityByName(name);
         return activity;
+    }
+
+    @Override
+    public Activity getActivityById(Long id) {
+        Activity activity = activityRepoMysql.findById(id).orElseThrow();
+        return activity;
+    }
+
+    @Override
+    public Map<String, Object> getActivityDataJson(Long id) {
+        Map<String, Object> jsonData = new HashMap<>();
+        Activity activity = getActivityById(id);
+        Set<Activity> activities = new HashSet<>();
+        activities.add(activity);
+        List<Material> materials = materialService.getMaterialByActivity(id);
+        List<Tag> tags = tagService.getTagsOfActivity(activities);
+        jsonData.put("activity", activity);
+        jsonData.put("materials", materials);
+        jsonData.put("activity_tags", tags);
+        return jsonData;
+    }
+
+    @Override
+    public boolean isOwner(Client currentClient, Long activityId) {
+        Activity activity = activityRepoMysql.findByClientAndId(currentClient, activityId);
+        if (activity != null) {
+            return true;
+        }
+        return false;
+    }
+
     private List<Map<String, Object>> heartsToJson(Set<Heart> hearts) {
         Map<String, Object> heartJson = new HashMap<>();
         List<Map<String, Object>> allHeartsByActivity = new ArrayList<>();

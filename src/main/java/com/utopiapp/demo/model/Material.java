@@ -1,5 +1,6 @@
 package com.utopiapp.demo.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
@@ -19,6 +20,7 @@ public class Material {
 
     @ManyToOne
     @JoinColumn(name = "activity_id")
+    @JsonIgnore
     private Activity activity;
 
     public Long getId() {

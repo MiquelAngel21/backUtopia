@@ -39,12 +39,15 @@ public class Activity {
     private Set<Tag> tags = new HashSet<>();
 
     @OneToMany(mappedBy = "activity")
+    @JsonIgnore
     private Set<Material> materials;
 
     @OneToMany(mappedBy = "activity")
+    @JsonIgnore
     private Set<File> files;
 
     @OneToMany(mappedBy = "activity")
+    @JsonIgnore
     private Set<Heart> hearts;
 
     public Activity(String name, boolean isEvent, String description, LocalDateTime createdDate, Client client, Set<Tag> tags, Set<Material> materials, Set<File> files) {

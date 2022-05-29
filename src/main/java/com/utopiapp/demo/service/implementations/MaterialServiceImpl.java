@@ -32,4 +32,11 @@ public class MaterialServiceImpl implements MaterialService {
             materialRepoMysql.saveAll(material);
         }
     }
+
+    @Override
+    public List<Material> getMaterialByActivity(Long id) {
+        return materialRepoMysql.getMaterialsByActivity_Id(id);
+    }
+
+
 }
