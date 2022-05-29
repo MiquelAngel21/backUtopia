@@ -1,15 +1,16 @@
 package com.utopiapp.demo.service.implementations;
 
 import com.utopiapp.demo.dto.ActivityDto;
-import com.utopiapp.demo.model.Activity;
-import com.utopiapp.demo.model.Heart;
-import com.utopiapp.demo.model.UserMain;
-import com.utopiapp.demo.repositories.mysql.ActivityRepoMysqlImpl;
+import com.utopiapp.demo.dto.FileDto;
+import com.utopiapp.demo.model.*;
+import com.utopiapp.demo.repositories.mysql.*;
 import com.utopiapp.demo.service.interfaces.ActivityService;
-import com.utopiapp.demo.service.interfaces.MaterialService;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
+import java.awt.print.Pageable;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.TemporalField;
@@ -23,12 +24,14 @@ public class ActivityServiceImpl implements ActivityService {
     private final FileRepoMysqlImpl fileRepoMysql;
     private final MaterialRepoMysqlImpl materialRepoMysql;
     private final HeartRepoMysqlImpl heartRepoMysql;
+    private final TagRepoMysqlImpl tagRepoMysql;
 
-    public ActivityServiceImpl(ActivityRepoMysqlImpl activityRepoMysql, FileRepoMysqlImpl fileRepoMysql, MaterialRepoMysqlImpl materialRepoMysql, HeartRepoMysqlImpl heartRepoMysql) {
+    public ActivityServiceImpl(ActivityRepoMysqlImpl activityRepoMysql, FileRepoMysqlImpl fileRepoMysql, MaterialRepoMysqlImpl materialRepoMysql, HeartRepoMysqlImpl heartRepoMysql, TagRepoMysqlImpl tagRepoMysql) {
         this.activityRepoMysql = activityRepoMysql;
         this.fileRepoMysql = fileRepoMysql;
         this.materialRepoMysql = materialRepoMysql;
         this.heartRepoMysql = heartRepoMysql;
+        this.tagRepoMysql = tagRepoMysql;
     }
 
     @Override
@@ -208,7 +211,7 @@ public class ActivityServiceImpl implements ActivityService {
 
     @Override
     public Map<String, Object> makePaginationWithDatabaseResults(String filterText, int start, int length) {
-        Pageable paging = PageRequest.of(start / length, length);
+        Pageable paging = (Pageable) PageRequest.of(start / length, length);
         Page<Activity> pageResult;
         if (filterText != null && filterText.length() != 0){
             pageResult = getAllFilteredActivitiesByMostRecentDate("%"+filterText+"%", paging);
@@ -265,8 +268,8 @@ public class ActivityServiceImpl implements ActivityService {
         Activity activity = getActivityById(id);
         Set<Activity> activities = new HashSet<>();
         activities.add(activity);
-        List<Material> materials = materialService.getMaterialByActivity(id);
-        List<Tag> tags = tagService.getTagsOfActivity(activities);
+        List<Material> materials = materialRepoMysql.getMaterialsByActivity_Id(id);
+        List<Tag> tags = tagRepoMysql.findByActivitiesIn(activities);
         jsonData.put("activity", activity);
         jsonData.put("materials", materials);
         jsonData.put("activity_tags", tags);
@@ -275,7 +278,7 @@ public class ActivityServiceImpl implements ActivityService {
 
     @Override
     public boolean isOwner(Client currentClient, Long activityId) {
-        Activity activity = activityRepoMysql.findByClientAndId(currentClient, activityId);
+        Activity activity = activityRepoMysql.findActivityByClientAndId(currentClient, activityId);
         if (activity != null) {
             return true;
         }

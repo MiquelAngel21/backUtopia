@@ -3,6 +3,7 @@ package com.utopiapp.demo.controllers;
 import com.utopiapp.demo.dto.ActivityDto;
 import com.utopiapp.demo.dto.Message;
 import com.utopiapp.demo.model.Activity;
+import com.utopiapp.demo.model.Client;
 import com.utopiapp.demo.model.Tag;
 import com.utopiapp.demo.model.UserMain;
 import com.utopiapp.demo.service.interfaces.ActivityService;

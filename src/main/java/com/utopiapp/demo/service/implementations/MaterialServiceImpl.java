@@ -26,7 +26,7 @@ public class MaterialServiceImpl implements MaterialService {
             if (e.getAmount() == 0 || e.getName().equals("")){
                 material.remove(e);
             }
-            e.setActivity(activity);
+            //e.setActivity(activity);
         });
         if (!material.isEmpty()){
             materialRepoMysql.saveAll(material);

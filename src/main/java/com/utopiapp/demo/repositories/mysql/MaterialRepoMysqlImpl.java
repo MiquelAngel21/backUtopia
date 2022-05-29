@@ -3,6 +3,7 @@ package com.utopiapp.demo.repositories.mysql;
 import com.utopiapp.demo.model.File;
 import com.utopiapp.demo.model.Material;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
 

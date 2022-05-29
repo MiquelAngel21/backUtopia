@@ -2,8 +2,11 @@ package com.utopiapp.demo.service.interfaces;
 
 import com.utopiapp.demo.dto.ActivityDto;
 import com.utopiapp.demo.model.Activity;
+import com.utopiapp.demo.model.Client;
 import com.utopiapp.demo.model.UserMain;
+import org.springframework.data.domain.Page;
 
+import java.awt.print.Pageable;
 import java.util.List;
 import java.util.Map;
 
