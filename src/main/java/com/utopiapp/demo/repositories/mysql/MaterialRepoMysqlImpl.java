@@ -10,5 +10,5 @@ import java.util.List;
 @Repository
 public interface MaterialRepoMysqlImpl extends JpaRepository<Material, Long> {
     Material findByNameAndAmount(String name, int amount);
-    List<Material> getMaterialsByActivity_Id(Long id);
+    List<Material> getMaterialsByActivities_Id(Long id);
 }

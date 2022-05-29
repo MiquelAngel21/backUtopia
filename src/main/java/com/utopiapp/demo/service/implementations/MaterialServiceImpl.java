@@ -35,7 +35,7 @@ public class MaterialServiceImpl implements MaterialService {
 
     @Override
     public List<Material> getMaterialByActivity(Long id) {
-        return materialRepoMysql.getMaterialsByActivity_Id(id);
+        return materialRepoMysql.getMaterialsByActivities_Id(id);
     }
 
 

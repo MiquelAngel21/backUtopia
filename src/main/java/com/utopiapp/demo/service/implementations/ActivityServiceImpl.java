@@ -10,7 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
-import java.awt.print.Pageable;
+import org.springframework.data.domain.Pageable;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.TemporalField;
@@ -268,7 +268,7 @@ public class ActivityServiceImpl implements ActivityService {
         Activity activity = getActivityById(id);
         Set<Activity> activities = new HashSet<>();
         activities.add(activity);
-        List<Material> materials = materialRepoMysql.getMaterialsByActivity_Id(id);
+        List<Material> materials = materialRepoMysql.getMaterialsByActivities_Id(id);
         List<Tag> tags = tagRepoMysql.findByActivitiesIn(activities);
         jsonData.put("activity", activity);
         jsonData.put("materials", materials);
