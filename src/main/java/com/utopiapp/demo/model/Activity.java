@@ -15,7 +15,7 @@ public class Activity {
     @GeneratedValue(generator="gen")
     private Long id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String name;
 
     @Column(nullable = false)
@@ -62,6 +62,7 @@ public class Activity {
     private Set<File> files;
 
     @OneToMany(mappedBy = "activity")
+    @JsonIgnore
     private Set<Heart> hearts;
 
     public Activity(String name, boolean isEvent, String description, LocalDateTime createdDate, Client client, Set<Tag> tags, Set<Material> materials, Set<File> files) {
@@ -74,6 +75,16 @@ public class Activity {
         this.tags = tags;
         this.materials = materials;
         this.files = files;
+        this.hearts = new HashSet<>();
+    }
+
+    public Activity(String name, boolean isEvent, String description, LocalDateTime createdDate, Client client) {
+        this.name = name;
+        this.isEvent = isEvent;
+        this.description = description;
+        this.createdDate = createdDate;
+        this.guides = new HashSet<>();
+        this.client = client;
         this.hearts = new HashSet<>();
     }
 

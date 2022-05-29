@@ -1,16 +1,13 @@
 package com.utopiapp.demo.service.implementations;
 
 import com.utopiapp.demo.dto.ActivityDto;
-import com.utopiapp.demo.dto.FileDto;
-import com.utopiapp.demo.model.*;
+import com.utopiapp.demo.model.Activity;
+import com.utopiapp.demo.model.Heart;
+import com.utopiapp.demo.model.UserMain;
 import com.utopiapp.demo.repositories.mysql.ActivityRepoMysqlImpl;
-import com.utopiapp.demo.repositories.mysql.FileRepoMysqlImpl;
-import com.utopiapp.demo.repositories.mysql.HeartRepoMysqlImpl;
-import com.utopiapp.demo.repositories.mysql.MaterialRepoMysqlImpl;
 import com.utopiapp.demo.service.interfaces.ActivityService;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+import com.utopiapp.demo.service.interfaces.MaterialService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -57,22 +54,22 @@ public class ActivityServiceImpl implements ActivityService {
         LocalDateTime startofAllHistory = LocalDateTime.parse("0001-01-01T00:00:00.000");
         LocalDateTime endofAllHistory = LocalDateTime.now();
 
-        List<Activity> activities = activityRepoMysql.getTopThreeFromRangeOfDates(startofAllHistory, endofAllHistory).subList(0, 3);
+        List<Activity> activities = activityRepoMysql.getTopThreeFromRangeOfDates(startofAllHistory, endofAllHistory).subList(0,3);
         return convertActivityListIntoJsonList(activities);
     }
 
     private LocalDateTime getLastDayOfTheMonth(LocalDateTime startMonthDayRange) {
-        int endMonthDay = getDaysOfMonthByNumericRepresentationAndYear(startMonthDayRange.getMonthValue() - 1, startMonthDayRange.getYear());
+        int endMonthDay = getDaysOfMonthByNumericRepresentationAndYear(startMonthDayRange.getMonthValue()-1, startMonthDayRange.getYear());
         return startMonthDayRange.withDayOfMonth(endMonthDay);
     }
 
     private LocalDateTime getFirstDayOfTheMonth() {
-        LocalDateTime startMonthDayRange = LocalDateTime.parse(LocalDate.now() + "T00:00:00.000");
+        LocalDateTime startMonthDayRange = LocalDateTime.parse(LocalDate.now()+"T00:00:00.000");
         return startMonthDayRange.withDayOfMonth(1);
     }
 
     private LocalDateTime getLastDayOfTheWeek(LocalDateTime startDateRange) {
-        LocalDateTime endDateRange = startDateRange.plusDays(8);
+        LocalDateTime endDateRange =  startDateRange.plusDays(8);
         endDateRange = endDateRange.withHour(0);
         endDateRange = endDateRange.withMinute(0);
         endDateRange = endDateRange.withSecond(0);
@@ -81,7 +78,7 @@ public class ActivityServiceImpl implements ActivityService {
     }
 
     private LocalDateTime getFirstDayOfTheWeek() {
-        LocalDateTime now = LocalDateTime.parse(LocalDate.now() + "T23:59:59.9999");
+        LocalDateTime now = LocalDateTime.parse(LocalDate.now()+"T23:59:59.9999");
         TemporalField fieldISO = WeekFields.of(Locale.FRENCH).dayOfWeek();
         LocalDateTime startDateRange = now.with(fieldISO, 1);
         return startDateRange;
@@ -247,6 +244,42 @@ public class ActivityServiceImpl implements ActivityService {
         activityJson.put("files", activity.getFiles());
         activityJson.put("hearts", heartsToJson(activity.getHearts()));
         return activityJson;
+    }
+
+
+    @Override
+    public Activity getActivityByName(String name) {
+        Activity activity = activityRepoMysql.getActivityByName(name);
+        return activity;
+    }
+
+    @Override
+    public Activity getActivityById(Long id) {
+        Activity activity = activityRepoMysql.findById(id).orElseThrow();
+        return activity;
+    }
+
+    @Override
+    public Map<String, Object> getActivityDataJson(Long id) {
+        Map<String, Object> jsonData = new HashMap<>();
+        Activity activity = getActivityById(id);
+        Set<Activity> activities = new HashSet<>();
+        activities.add(activity);
+        List<Material> materials = materialService.getMaterialByActivity(id);
+        List<Tag> tags = tagService.getTagsOfActivity(activities);
+        jsonData.put("activity", activity);
+        jsonData.put("materials", materials);
+        jsonData.put("activity_tags", tags);
+        return jsonData;
+    }
+
+    @Override
+    public boolean isOwner(Client currentClient, Long activityId) {
+        Activity activity = activityRepoMysql.findByClientAndId(currentClient, activityId);
+        if (activity != null) {
+            return true;
+        }
+        return false;
     }
 
     private List<Map<String, Object>> heartsToJson(Set<Heart> hearts) {

@@ -3,8 +3,6 @@ package com.utopiapp.demo.service.interfaces;
 import com.utopiapp.demo.dto.ActivityDto;
 import com.utopiapp.demo.model.Activity;
 import com.utopiapp.demo.model.UserMain;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Map;
@@ -28,4 +26,10 @@ public interface ActivityService {
     Map<String, Object> manageLike(Long id, UserMain userMain);
 
     Map<String, Object> makePaginationWithDatabaseResults(String filterText, int start, int length);
+
+    Activity getActivityByName(String name);
+    Activity getActivityById(Long id);
+
+    Map<String, Object> getActivityDataJson(Long id);
+    boolean isOwner(Client currentClient, Long activityId);
 }
