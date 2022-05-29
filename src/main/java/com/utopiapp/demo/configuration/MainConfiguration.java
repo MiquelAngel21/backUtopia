@@ -75,17 +75,11 @@ public class MainConfiguration extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http.cors().and().csrf().disable()
                 .authorizeRequests()
-                .antMatchers(HttpMethod.GET, "/*", "/activities/**").permitAll()
-                .antMatchers(HttpMethod.POST, "/login", "/register", "/activities").permitAll()
+                .antMatchers(HttpMethod.GET, "/login", "/register", "/manage-like/*").permitAll()
+                .antMatchers(HttpMethod.POST, "/login", "/register").permitAll()
                 .anyRequest().authenticated()
                 .and()
-                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                .and()
-                .oauth2Login()
-                .authorizationEndpoint()
-                .baseUri("/authgoogle")
-                .and()
-                .loginPage("/login");
+                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
         http.addFilterBefore(jwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
     }
 

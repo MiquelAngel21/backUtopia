@@ -3,6 +3,7 @@ package com.utopiapp.demo.service.implementations;
 import com.utopiapp.demo.dto.LoginDto;
 import com.utopiapp.demo.dto.RegisterDto;
 import com.utopiapp.demo.model.Client;
+import com.utopiapp.demo.model.Heart;
 import com.utopiapp.demo.model.Role;
 import com.utopiapp.demo.repositories.mysql.ClientRepoMysqlImpl;
 import com.utopiapp.demo.service.interfaces.ClientService;
@@ -14,8 +15,7 @@ import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpSession;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 @Service
 public class ClientServiceImpl implements ClientService {
@@ -114,6 +114,21 @@ public class ClientServiceImpl implements ClientService {
         currentUserData.put("lastname", client.getLastname());
         currentUserData.put("email", client.getEmail());
         currentUserData.put("role", client.getRole());
+        currentUserData.put("Hearts", heartsToJsonFormat(client.getHearts()));
         return currentUserData;
+    }
+
+    private Object heartsToJsonFormat(Set<Heart> hearts) {
+        List<Map<String, Object>> heartsInJsonFormat = new ArrayList<>();
+
+        for (Heart heart : hearts){
+            Map<String, Object> jsonHeart = new HashMap<>();
+            jsonHeart.put("id", heart.getId());
+            jsonHeart.put("activity_id", heart.getActivity().getId());
+            jsonHeart.put("client_id", heart.getClient().getId());
+            heartsInJsonFormat.add(jsonHeart);
+        }
+
+        return heartsInJsonFormat;
     }
 }

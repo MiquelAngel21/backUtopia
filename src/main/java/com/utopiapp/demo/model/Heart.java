@@ -8,7 +8,7 @@ import javax.persistence.*;
 public class Heart {
     @Id
     @GenericGenerator(name="gen" , strategy="increment")
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(generator="gen")
     private Long id;
 
     @ManyToOne
@@ -16,6 +16,14 @@ public class Heart {
 
     @ManyToOne
     private Client client;
+
+    public Heart() {
+    }
+
+    public Heart(Activity activity, Client client) {
+        this.activity = activity;
+        this.client = client;
+    }
 
     public Long getId() {
         return id;
@@ -40,4 +48,6 @@ public class Heart {
     public void setClient(Client client) {
         this.client = client;
     }
+
+
 }

@@ -52,7 +52,13 @@ public class Activity {
     )
     private Set<Material> materials;
 
-    @OneToMany(mappedBy = "activity")
+    @ManyToMany
+    @JoinTable(
+            joinColumns=
+            @JoinColumn(name="activities_id", referencedColumnName="id"),
+            inverseJoinColumns=
+            @JoinColumn(name="files_id", referencedColumnName="id")
+    )
     private Set<File> files;
 
     @OneToMany(mappedBy = "activity")
@@ -161,5 +167,19 @@ public class Activity {
 
     public void setFiles(Set<File> files) {
         this.files = files;
+    }
+
+    @Override
+    public String toString() {
+        return "Activity{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", description='" + description + '\'' +
+                ", guides=" + guides +
+                ", tags=" + tags +
+                ", materials=" + materials +
+                ", files=" + files +
+                ", hearts=" + hearts +
+                '}';
     }
 }

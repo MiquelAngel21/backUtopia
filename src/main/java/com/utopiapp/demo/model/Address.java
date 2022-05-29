@@ -8,7 +8,7 @@ import javax.persistence.*;
 public class Address {
     @Id
     @GenericGenerator(name="gen" , strategy="increment")
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(generator="gen")
     private Long id;
 
     @Column(nullable = false)

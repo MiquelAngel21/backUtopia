@@ -4,12 +4,13 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
+import java.util.Set;
 
 @Entity
 public class File {
     @Id
     @GenericGenerator(name="gen" , strategy="increment")
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(generator="gen")
     private Long id;
 
     @Column(nullable = false)
@@ -21,9 +22,9 @@ public class File {
     @Column(nullable = false)
     private String mediaType;
 
-    @ManyToOne
+    @ManyToMany(mappedBy = "files")
     @JsonIgnore
-    private Activity activity;
+    private Set<Activity> activities;
 
     public Long getId() {
         return id;
@@ -57,11 +58,20 @@ public class File {
         this.mediaType = mediaType;
     }
 
-    public Activity getActivity() {
-        return activity;
+    public Set<Activity> getActivities() {
+        return activities;
     }
 
-    public void setActivity(Activity activity) {
-        this.activity = activity;
+    public void setActivities(Set<Activity> activity) {
+        this.activities = activity;
+    }
+
+    @Override
+    public String toString() {
+        return "File{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", mediaType='" + mediaType + '\'' +
+                '}';
     }
 }

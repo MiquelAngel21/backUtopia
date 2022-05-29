@@ -8,6 +8,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.Collection;
+import java.util.Objects;
 import java.util.Set;
 
 @Entity
@@ -15,7 +16,7 @@ public class Client{
 
     @Id
     @GenericGenerator(name="gen" , strategy="increment")
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(generator="gen")
     private Long id;
 
     @Column(nullable = false)
@@ -39,10 +40,6 @@ public class Client{
 
     @Enumerated(EnumType.STRING)
     private Role role;
-
-    @ManyToOne()
-    @JsonIgnore
-    private Category category;
 
     @ManyToOne()
     @JsonIgnore
@@ -161,14 +158,6 @@ public class Client{
         this.role = role;
     }
 
-    public Category getCategory() {
-        return category;
-    }
-
-    public void setCategory(Category category) {
-        this.category = category;
-    }
-
     public Club getClub() {
         return club;
     }
@@ -211,5 +200,32 @@ public class Client{
 
     public UserMain toUserMain(){
         return new UserMain(this.id, this.name, this.username, this.lastname, this.email, this.password, this.createdDate, this.role);
+    }
+
+    @Override
+    public String toString() {
+        return "Client{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", username='" + username + '\'' +
+                ", lastname='" + lastname + '\'' +
+                ", email='" + email + '\'' +
+                ", password='" + password + '\'' +
+                ", createdDate=" + createdDate +
+                ", role=" + role +
+                '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Client client = (Client) o;
+        return Objects.equals(id, client.id) && Objects.equals(name, client.name) && Objects.equals(username, client.username) && Objects.equals(lastname, client.lastname) && Objects.equals(email, client.email) && Objects.equals(createdDate, client.createdDate) && role == client.role && Objects.equals(club, client.club);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, name, username, lastname, email, createdDate, role, club);
     }
 }

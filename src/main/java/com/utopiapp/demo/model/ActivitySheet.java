@@ -10,7 +10,7 @@ import java.util.Set;
 public class ActivitySheet {
     @Id
     @GenericGenerator(name="gen" , strategy="increment")
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(generator="gen")
     private Long id;
 
     @Column(nullable = false)
@@ -21,9 +21,6 @@ public class ActivitySheet {
 
     @ManyToMany()
     private Set<Petition> petitions;
-
-    @ManyToOne()
-    private Category category;
 
     @ManyToOne
     private Club club;

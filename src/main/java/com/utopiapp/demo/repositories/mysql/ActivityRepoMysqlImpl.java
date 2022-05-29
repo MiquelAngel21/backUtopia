@@ -11,11 +11,12 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public interface ActivityRepoMysqlImpl extends JpaRepository<Activity, Long> {
-    Page<Activity> findAllByOrderByCreatedDateDesc(Pageable pageable);
+    Page<Activity> findAllByOrderByCreatedDateDescIdDesc(Pageable pageable);
     List<Activity> findAllByClientOrderByCreatedDateDesc(Long clientId);
+
+    Page<Activity> findAllByNameLikeOrderByCreatedDateDescIdDesc(String name, Pageable pageable);
 
     @Query("SELECT a FROM Heart h, Activity a WHERE h.activity.id = a.id AND a.createdDate > :startRange AND a.createdDate < :endRange GROUP BY h.activity.id ORDER BY COUNT(h.activity.id) DESC, a.createdDate DESC")
     List<Activity> getTopThreeFromRangeOfDates(@Param("startRange") LocalDateTime startRange, @Param("endRange") LocalDateTime endRange);
     List<Activity> findAllByOrderByCreatedDateAsc();
-    Activity getActivityByName(String name);
 }

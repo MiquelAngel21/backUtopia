@@ -10,7 +10,7 @@ import java.util.Set;
 public class Club {
     @Id
     @GenericGenerator(name="gen" , strategy="increment")
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(generator="gen")
     private Long id;
 
     @Column(nullable = false, unique = true, length = 200)
@@ -30,9 +30,6 @@ public class Club {
 
     @Column(nullable = false)
     private LocalDate createDate;
-
-    @OneToMany(mappedBy = "club")
-    private Set<Category> categories;
 
     @OneToOne(mappedBy = "club")
     private Address addresses;

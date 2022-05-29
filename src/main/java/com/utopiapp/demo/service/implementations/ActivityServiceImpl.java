@@ -5,9 +5,11 @@ import com.utopiapp.demo.dto.FileDto;
 import com.utopiapp.demo.model.*;
 import com.utopiapp.demo.repositories.mysql.ActivityRepoMysqlImpl;
 import com.utopiapp.demo.repositories.mysql.FileRepoMysqlImpl;
+import com.utopiapp.demo.repositories.mysql.HeartRepoMysqlImpl;
 import com.utopiapp.demo.repositories.mysql.MaterialRepoMysqlImpl;
 import com.utopiapp.demo.service.interfaces.ActivityService;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -23,16 +25,18 @@ public class ActivityServiceImpl implements ActivityService {
     private final ActivityRepoMysqlImpl activityRepoMysql;
     private final FileRepoMysqlImpl fileRepoMysql;
     private final MaterialRepoMysqlImpl materialRepoMysql;
+    private final HeartRepoMysqlImpl heartRepoMysql;
 
-    public ActivityServiceImpl(ActivityRepoMysqlImpl activityRepoMysql, FileRepoMysqlImpl fileRepoMysql, MaterialRepoMysqlImpl materialRepoMysql) {
+    public ActivityServiceImpl(ActivityRepoMysqlImpl activityRepoMysql, FileRepoMysqlImpl fileRepoMysql, MaterialRepoMysqlImpl materialRepoMysql, HeartRepoMysqlImpl heartRepoMysql) {
         this.activityRepoMysql = activityRepoMysql;
         this.fileRepoMysql = fileRepoMysql;
         this.materialRepoMysql = materialRepoMysql;
+        this.heartRepoMysql = heartRepoMysql;
     }
 
     @Override
     public Page<Activity> getAllActivitiesByMostRecentDate(Pageable paging) {
-        return activityRepoMysql.findAllByOrderByCreatedDateDesc(paging);
+        return activityRepoMysql.findAllByOrderByCreatedDateDescIdDesc(paging);
     }
 
     @Override
@@ -95,10 +99,9 @@ public class ActivityServiceImpl implements ActivityService {
         activity.setHearts(new HashSet<>());
 
         addMaterialsToActivity(activity, activityDto);
+        addFilesToActivity(activity, activityDto);
 
         activity = activityRepoMysql.save(activity);
-
-        addFilesToActivity(activity, activityDto);
 
 
         return activity;
@@ -133,20 +136,27 @@ public class ActivityServiceImpl implements ActivityService {
     }
 
     private void addFilesToActivity(Activity activity, ActivityDto activityDto) {
-        if (activityDto.getFiles().size() > 0) {
-            Set<FileDto> DtoFiles = activityDto.getFiles();
-            Set<File> files = new HashSet<>();
-            for (FileDto fileDto : DtoFiles) {
-                File file = new File();
-                file.setContent(Base64.getDecoder().decode(fileDto.getContent()));
-                file.setActivity(activity);
-                file.setName(fileDto.getName());
-                file.setMediaType(fileDto.getMediaType());
+        Set<File> finalFiles = new HashSet<>();
+        for (FileDto fileDto : activityDto.getFiles()) {
+            File file = fileDtoIntoFile(fileDto);
+            File fileAlreadyExists = fileRepoMysql.findByContent(file.getContent());
+
+            if (fileAlreadyExists != null) {
+                finalFiles.add(fileAlreadyExists);
+            } else {
+                finalFiles.add(file);
                 fileRepoMysql.save(file);
-                files.add(file);
             }
-            activity.setFiles(files);
         }
+        activity.setFiles(finalFiles);
+    }
+
+    private File fileDtoIntoFile(FileDto fileDto) {
+        File file = new File();
+        file.setContent(Base64.getDecoder().decode(fileDto.getContent()));
+        file.setName(fileDto.getName());
+        file.setMediaType(fileDto.getMediaType());
+        return file;
     }
 
     @Override
@@ -166,29 +176,61 @@ public class ActivityServiceImpl implements ActivityService {
         return createActivityJson(activity);
     }
 
-    //@Override
-    /*public List<String[]> toListOfArrayOfStrings(List<Activity> list10) {
-
-        List<String[]> result = new ArrayList<>();
-        for (Activity activity : list10) {
-            String[] objects = new String[7];
-            objects[0] = activity.getName();
-            objects[1] = activity.getDescription();
-            objects[2] = activity.getClient().getEmail();
-            objects[3] = activity.getCreatedDate().toString();
-            //objects[4] = activity.getTags()
-            result.add(objects);
-        }
-        return result;*/
-
-    //}
-
-    private List<Map<String, Object>> convertActivityListIntoJsonList(List<Activity> activities) {
+    @Override
+    public List<Map<String, Object>> convertActivityListIntoJsonList(List<Activity> activities) {
         List<Map<String, Object>> allActivitiesJson = new ArrayList<>();
         for (Activity activity : activities) {
             allActivitiesJson.add(createActivityJson(activity));
         }
         return allActivitiesJson;
+    }
+
+    @Override
+    public Map<String, Object> manageLike(Long id, UserMain userMain) {
+        Activity activity = activityRepoMysql.getById(id);
+        boolean isLiked = false;
+        for (Heart heart : activity.getHearts()) {
+            if (heart.getClient().equals(userMain.toClient())) {
+                Set<Heart> allHeartsFromActivity = activity.getHearts();
+                allHeartsFromActivity.remove(heart);
+                activityRepoMysql.save(activity);
+                heartRepoMysql.delete(heart);
+                isLiked = true;
+                break;
+            }
+        }
+        if (!isLiked) {
+            Heart newLike = new Heart(activity, userMain.toClient());
+            Set<Heart> addNewLike = activity.getHearts();
+            addNewLike.add(newLike);
+            activity.setHearts(addNewLike);
+            heartRepoMysql.save(newLike);
+        }
+        return createActivityJson(activity);
+    }
+
+    @Override
+    public Map<String, Object> makePaginationWithDatabaseResults(String filterText, int start, int length) {
+        Pageable paging = PageRequest.of(start / length, length);
+        Page<Activity> pageResult;
+        if (filterText != null && filterText.length() != 0){
+            pageResult = getAllFilteredActivitiesByMostRecentDate("%"+filterText+"%", paging);
+        } else {
+            pageResult = getAllActivitiesByMostRecentDate(paging);
+        }
+
+        long total = pageResult.getTotalElements();
+        List<Map<String, Object>> data = convertActivityListIntoJsonList(pageResult.getContent());
+
+        Map<String, Object> json = new HashMap<>();
+        json.put("data", data);
+        json.put("recordsTotal", total);
+        return json;
+
+    }
+
+    private Page<Activity> getAllFilteredActivitiesByMostRecentDate(String filteredText, Pageable paging) {
+        return activityRepoMysql.findAllByNameLikeOrderByCreatedDateDescIdDesc(filteredText, paging);
     }
 
     private Map<String, Object> createActivityJson(Activity activity) {
@@ -199,7 +241,7 @@ public class ActivityServiceImpl implements ActivityService {
         activityJson.put("description", activity.getDescription());
         activityJson.put("createdDate", activity.getCreatedDate());
         activityJson.put("guides", activity.getGuide());
-        activityJson.put("client", activity.getClient());
+        activityJson.put("client", activity.getClient().getId());
         activityJson.put("tags", activity.getTags());
         activityJson.put("materials", activity.getMaterials());
         activityJson.put("files", activity.getFiles());

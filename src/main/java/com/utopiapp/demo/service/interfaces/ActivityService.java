@@ -5,7 +5,6 @@ import com.utopiapp.demo.model.Activity;
 import com.utopiapp.demo.model.UserMain;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.ResponseEntity;
 
 import java.util.List;
 import java.util.Map;
@@ -21,8 +20,12 @@ public interface ActivityService {
     Activity updateAnExistingActivity(Long id, Activity activity, ActivityDto activityDto, UserMain userMain);
 
     void deleteActivity(Long id);
-    Activity createNewActivity(ActivityDto activityDto, Client userMain);
-    Activity getActivityByName(String name);
 
     Map<String, Object> getOneActivityById(Long id);
+
+    List<Map<String, Object>> convertActivityListIntoJsonList(List<Activity> content);
+
+    Map<String, Object> manageLike(Long id, UserMain userMain);
+
+    Map<String, Object> makePaginationWithDatabaseResults(String filterText, int start, int length);
 }

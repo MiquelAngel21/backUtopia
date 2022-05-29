@@ -8,7 +8,7 @@ import javax.persistence.*;
 public class Kid {
     @Id
     @GenericGenerator(name="gen" , strategy="increment")
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(generator="gen")
     private Long id;
 
     @Column(nullable = false)
@@ -22,9 +22,6 @@ public class Kid {
 
     @Column(nullable = false)
     private String information;
-
-    @ManyToOne()
-    private Category category;
 
     public Long getId() {
         return id;

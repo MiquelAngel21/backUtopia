@@ -8,7 +8,7 @@ import javax.persistence.*;
 public class Guide {
     @Id
     @GenericGenerator(name = "gen", strategy = "increment")
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(generator="gen")
     private Long id;
 
     private String text;
