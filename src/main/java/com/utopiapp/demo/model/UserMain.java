@@ -5,6 +5,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
+import java.util.Set;
 
 public class UserMain implements UserDetails {
     private Long id;
@@ -16,8 +17,13 @@ public class UserMain implements UserDetails {
     private LocalDateTime createdDate;
     private Role role;
     private Collection<? extends GrantedAuthority> authorities;
+    private Club club;
+    private Set<Petition> petitions;
+    private Set<Activity> activities;
+    private Set<ActivitySheet> activitySheets;
+    private Set<Heart> hearts;
 
-    public UserMain(Long id, String name, String username, String lastname, String email, String password, LocalDateTime createdDate, Role role) {
+    public UserMain(Long id, String name, String username, String lastname, String email, String password, LocalDateTime createdDate, Role role, Club club, Set<Petition> petitions, Set<Activity> activities, Set<ActivitySheet> activitySheets, Set<Heart> hearts) {
         this.id = id;
         this.name = name;
         this.username = username;
@@ -26,10 +32,14 @@ public class UserMain implements UserDetails {
         this.password = password;
         this.createdDate = createdDate;
         this.role = role;
+        this.petitions = petitions;
+        this.activities = activities;
+        this.activitySheets = activitySheets;
+        this.hearts = hearts;
     }
 
     public Client toClient(){
-        return new Client(this.id, this.name, this.username, this.lastname, this.email, this.password, this.createdDate, this.role);
+        return new Client(this.id, this.name, this.username, this.lastname, this.email, this.password, this.createdDate, this.role, this.club, this.petitions, this.activities, this.activitySheets, this.hearts);
     }
 
     public Collection<? extends GrantedAuthority> getAuthorities() {

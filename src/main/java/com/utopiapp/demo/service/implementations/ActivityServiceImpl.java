@@ -5,16 +5,13 @@ import com.utopiapp.demo.dto.FileDto;
 import com.utopiapp.demo.model.*;
 import com.utopiapp.demo.repositories.mysql.*;
 import com.utopiapp.demo.service.interfaces.ActivityService;
+import com.utopiapp.demo.service.interfaces.ClientService;
 import org.springframework.data.domain.Page;
-
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import org.springframework.data.domain.Pageable;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.temporal.TemporalField;
-import java.time.temporal.WeekFields;
 import java.util.*;
 
 @Service
@@ -25,13 +22,15 @@ public class ActivityServiceImpl implements ActivityService {
     private final MaterialRepoMysqlImpl materialRepoMysql;
     private final HeartRepoMysqlImpl heartRepoMysql;
     private final TagRepoMysqlImpl tagRepoMysql;
+    private final ClientService clientService;
 
-    public ActivityServiceImpl(ActivityRepoMysqlImpl activityRepoMysql, FileRepoMysqlImpl fileRepoMysql, MaterialRepoMysqlImpl materialRepoMysql, HeartRepoMysqlImpl heartRepoMysql, TagRepoMysqlImpl tagRepoMysql) {
+    public ActivityServiceImpl(ActivityRepoMysqlImpl activityRepoMysql, FileRepoMysqlImpl fileRepoMysql, MaterialRepoMysqlImpl materialRepoMysql, HeartRepoMysqlImpl heartRepoMysql, TagRepoMysqlImpl tagRepoMysql, ClientServiceImpl clientService) {
         this.activityRepoMysql = activityRepoMysql;
         this.fileRepoMysql = fileRepoMysql;
         this.materialRepoMysql = materialRepoMysql;
         this.heartRepoMysql = heartRepoMysql;
         this.tagRepoMysql = tagRepoMysql;
+        this.clientService = clientService;
     }
 
     @Override
@@ -43,48 +42,6 @@ public class ActivityServiceImpl implements ActivityService {
     public List<Map<String, Object>> getActivitiesByUserAndMostRecentDate(Long clientId) {
         List<Activity> activities = activityRepoMysql.findAllByClientOrderByCreatedDateDesc(clientId);
         return convertActivityListIntoJsonList(activities);
-    }
-
-    @Override
-    public List<Map<String, Object>> getTopThreeActivitiesByRangeOfDates() {
-        //MILLORS TRES DE LA SETMANA
-        LocalDateTime startDateRange = getFirstDayOfTheWeek();
-        LocalDateTime endDateRange = getLastDayOfTheWeek(startDateRange);
-        //MILLORS TRES DEL MES
-        LocalDateTime startMonthDayRange = getFirstDayOfTheMonth();
-        LocalDateTime endMonthDayRange = getLastDayOfTheMonth(startMonthDayRange);
-        //MILLORS TRES DE LA HISTORIA
-        LocalDateTime startofAllHistory = LocalDateTime.parse("0001-01-01T00:00:00.000");
-        LocalDateTime endofAllHistory = LocalDateTime.now();
-
-        List<Activity> activities = activityRepoMysql.getTopThreeFromRangeOfDates(startofAllHistory, endofAllHistory).subList(0,3);
-        return convertActivityListIntoJsonList(activities);
-    }
-
-    private LocalDateTime getLastDayOfTheMonth(LocalDateTime startMonthDayRange) {
-        int endMonthDay = getDaysOfMonthByNumericRepresentationAndYear(startMonthDayRange.getMonthValue()-1, startMonthDayRange.getYear());
-        return startMonthDayRange.withDayOfMonth(endMonthDay);
-    }
-
-    private LocalDateTime getFirstDayOfTheMonth() {
-        LocalDateTime startMonthDayRange = LocalDateTime.parse(LocalDate.now()+"T00:00:00.000");
-        return startMonthDayRange.withDayOfMonth(1);
-    }
-
-    private LocalDateTime getLastDayOfTheWeek(LocalDateTime startDateRange) {
-        LocalDateTime endDateRange =  startDateRange.plusDays(8);
-        endDateRange = endDateRange.withHour(0);
-        endDateRange = endDateRange.withMinute(0);
-        endDateRange = endDateRange.withSecond(0);
-        endDateRange = endDateRange.withNano(0);
-        return endDateRange;
-    }
-
-    private LocalDateTime getFirstDayOfTheWeek() {
-        LocalDateTime now = LocalDateTime.parse(LocalDate.now()+"T23:59:59.9999");
-        TemporalField fieldISO = WeekFields.of(Locale.FRENCH).dayOfWeek();
-        LocalDateTime startDateRange = now.with(fieldISO, 1);
-        return startDateRange;
     }
 
     @Override
@@ -172,7 +129,7 @@ public class ActivityServiceImpl implements ActivityService {
 
     @Override
     public Map<String, Object> getOneActivityById(Long id) {
-        Activity activity = activityRepoMysql.getById(id);
+        Activity activity = activityRepoMysql.findActivityById(id);
         return createActivityJson(activity);
     }
 
@@ -187,33 +144,69 @@ public class ActivityServiceImpl implements ActivityService {
 
     @Override
     public Map<String, Object> manageLike(Long id, UserMain userMain) {
-        Activity activity = activityRepoMysql.getById(id);
+        Activity activity = activityRepoMysql.findActivityById(id);
+        Client currentClient = userMain.toClient();
         boolean isLiked = false;
         for (Heart heart : activity.getHearts()) {
-            if (heart.getClient().equals(userMain.toClient())) {
-                Set<Heart> allHeartsFromActivity = activity.getHearts();
-                allHeartsFromActivity.remove(heart);
-                activityRepoMysql.save(activity);
-                heartRepoMysql.delete(heart);
+            if (heart.getClient().equals(currentClient)) {
+                unlikeActivity(heart, currentClient, activity);
                 isLiked = true;
                 break;
             }
         }
         if (!isLiked) {
-            Heart newLike = new Heart(activity, userMain.toClient());
-            Set<Heart> addNewLike = activity.getHearts();
-            addNewLike.add(newLike);
-            activity.setHearts(addNewLike);
-            heartRepoMysql.save(newLike);
+            likeActivity(currentClient, activity);
         }
         return createActivityJson(activity);
     }
 
+    private void likeActivity(Client currentClient, Activity activity) {
+        Heart newLike = new Heart(activity, currentClient);
+        newLike = heartRepoMysql.save(newLike);
+        Set<Heart> newActivitiesLikes = activity.getHearts();
+        newActivitiesLikes.add(newLike);
+        activity.setHearts(newActivitiesLikes);
+
+        Set<Heart> newClientLikes = currentClient.getHearts();
+        newClientLikes.add(newLike);
+        currentClient.setHearts(newClientLikes);
+        activity.setClient(currentClient);
+
+        activityRepoMysql.save(activity);
+        clientService.save(currentClient);
+
+    }
+
+    private void unlikeActivity(Heart heart, Client currentClient, Activity activity) {
+        Set<Heart> allHeartsFromActivity = activity.getHearts();
+        allHeartsFromActivity.remove(heart);
+        activity.setHearts(allHeartsFromActivity);
+
+        Set<Heart> allHeartsFromClient = currentClient.getHearts();
+        for (Heart clientLikes : allHeartsFromClient){
+            if (heart.equals(clientLikes)){
+                allHeartsFromClient.remove(clientLikes);
+                break;
+            }
+        }
+        currentClient.setHearts(allHeartsFromClient);
+        activity.setClient(currentClient);
+
+        clientService.save(currentClient);
+        activityRepoMysql.save(activity);
+        heartRepoMysql.delete(heart);
+    }
+
     @Override
-    public Map<String, Object> makePaginationWithDatabaseResults(String filterText, int start, int length) {
-        Pageable paging = (Pageable) PageRequest.of(start / length, length);
+    public Map<String, Object> makePaginationWithDatabaseResults(Client client, String typeOfSearch, String filterText, int start, int length) {
+        Pageable paging = PageRequest.of(start / length, length);
         Page<Activity> pageResult;
-        if (filterText != null && filterText.length() != 0){
+
+        if (typeOfSearch != null && typeOfSearch.length() != 0 && filterText != null && filterText.length() != 0){
+            pageResult = getAllFilteredActivitiesByType(client, filterText, typeOfSearch, paging);
+        } else if (typeOfSearch != null && typeOfSearch.length() != 0){
+            pageResult = getAllActivitiesByType(client, paging, typeOfSearch);
+        } else if (filterText != null && filterText.length() != 0 ){
             pageResult = getAllFilteredActivitiesByMostRecentDate("%"+filterText+"%", paging);
         } else {
             pageResult = getAllActivitiesByMostRecentDate(paging);
@@ -229,6 +222,45 @@ public class ActivityServiceImpl implements ActivityService {
 
     }
 
+    private Page<Activity> getAllFilteredActivitiesByType(Client client, String filterText, String typeOfSearch, Pageable paging) {
+        filterText = "%"+filterText+"%";
+        Page<Activity> activities;
+        switch (typeOfSearch){
+            case "Ranking":
+                activities = activityRepoMysql.findAllByMoreLikedActivitiesAndNameLike(filterText, paging);
+                break;
+            case "Favorites":
+                activities = activityRepoMysql.findAllByHearts_ClientAndNameLikeOrderByCreatedDateDesc(client, filterText, paging);
+                break;
+            case "MyActivities":
+                activities = activityRepoMysql.findAllByClientAndNameLikeOrderByCreatedDateDesc(client, filterText, paging);
+                break;
+            default:
+                activities = null;
+        }
+
+        return activities;
+    }
+
+    private Page<Activity> getAllActivitiesByType(Client client, Pageable paging, String typeOfSearch) {
+        Page<Activity> activities;
+        switch (typeOfSearch){
+            case "Ranking":
+                activities = activityRepoMysql.findAllByMoreLikedActivities(paging);
+                break;
+            case "Favorites":
+                activities = activityRepoMysql.findAllByHearts_ClientOrderByCreatedDateDesc(client,paging);
+                break;
+            case "MyActivities":
+                activities = activityRepoMysql.findAllByClientOrderByCreatedDateDesc(client, paging);
+                break;
+            default:
+                activities = null;
+        }
+
+        return activities;
+    }
+
     private Page<Activity> getAllFilteredActivitiesByMostRecentDate(String filteredText, Pageable paging) {
         return activityRepoMysql.findAllByNameLikeOrderByCreatedDateDescIdDesc(filteredText, paging);
     }
@@ -241,7 +273,7 @@ public class ActivityServiceImpl implements ActivityService {
         activityJson.put("description", activity.getDescription());
         activityJson.put("createdDate", activity.getCreatedDate());
         activityJson.put("guides", activity.getGuide());
-        activityJson.put("client", activity.getClient().getId());
+        activityJson.put("client", clientService.getClientOnJsonFormat(activity.getClient()));
         activityJson.put("tags", activity.getTags());
         activityJson.put("materials", activity.getMaterials());
         activityJson.put("files", activity.getFiles());
@@ -249,10 +281,9 @@ public class ActivityServiceImpl implements ActivityService {
         return activityJson;
     }
 
-
     @Override
     public Activity getActivityByName(String name) {
-        Activity activity = activityRepoMysql.getActivityByName(name);
+        Activity activity = activityRepoMysql.findActivityByName(name);
         return activity;
     }
 

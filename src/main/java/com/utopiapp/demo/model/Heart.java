@@ -3,6 +3,7 @@ package com.utopiapp.demo.model;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
+import java.util.Objects;
 
 @Entity
 public class Heart {
@@ -11,16 +12,22 @@ public class Heart {
     @GeneratedValue(generator="gen")
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     private Activity activity;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     private Client client;
 
     public Heart() {
     }
 
     public Heart(Activity activity, Client client) {
+        this.activity = activity;
+        this.client = client;
+    }
+
+    public Heart(Long id, Activity activity, Client client) {
+        this.id = id;
         this.activity = activity;
         this.client = client;
     }
@@ -49,5 +56,16 @@ public class Heart {
         this.client = client;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Heart heart = (Heart) o;
+        return Objects.equals(id, heart.id) && Objects.equals(activity.getId(), heart.activity.getId()) && Objects.equals(client.getId(), heart.client.getId());
+    }
 
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, activity, client);
+    }
 }

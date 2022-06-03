@@ -8,19 +8,29 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-
-import java.time.LocalDateTime;
 import java.util.List;
 
 public interface ActivityRepoMysqlImpl extends JpaRepository<Activity, Long> {
+
     Page<Activity> findAllByOrderByCreatedDateDescIdDesc(Pageable pageable);
+    Page<Activity> findAllByNameLikeOrderByCreatedDateDescIdDesc(String name, Pageable pageable);
+    Page<Activity> findAllByHearts_ClientOrderByCreatedDateDesc (Client client, Pageable pageable);
+    Page<Activity> findAllByHearts_ClientAndNameLikeOrderByCreatedDateDesc(Client client, String name, Pageable pageable);
+    Page<Activity> findAllByClientOrderByCreatedDateDesc(Client client, Pageable pageable);
+    Page<Activity> findAllByClientAndNameLikeOrderByCreatedDateDesc(Client client, String name, Pageable pageable);
     List<Activity> findAllByClientOrderByCreatedDateDesc(Long clientId);
 
-    Page<Activity> findAllByNameLikeOrderByCreatedDateDescIdDesc(String name, Pageable pageable);
+    @Query("SELECT a FROM Heart h, Activity a WHERE h.activity.id = a.id GROUP BY h.activity.id ORDER BY COUNT(h.activity.id) DESC, a.createdDate DESC")
+    Page<Activity> findAllByMoreLikedActivities(Pageable pageable);
 
-    @Query("SELECT a FROM Heart h, Activity a WHERE h.activity.id = a.id AND a.createdDate > :startRange AND a.createdDate < :endRange GROUP BY h.activity.id ORDER BY COUNT(h.activity.id) DESC, a.createdDate DESC")
-    List<Activity> getTopThreeFromRangeOfDates(@Param("startRange") LocalDateTime startRange, @Param("endRange") LocalDateTime endRange);
-    List<Activity> findAllByOrderByCreatedDateAsc();
-    Activity getActivityByName(String name);
+    @Query("SELECT a FROM Heart h, Activity a WHERE h.activity.id = a.id AND a.name LIKE :searcher GROUP BY h.activity.id ORDER BY COUNT(h.activity.id) DESC, a.createdDate DESC")
+    Page<Activity> findAllByMoreLikedActivitiesAndNameLike(@Param("searcher") String searcher, Pageable pageable);
+
+
+
+    Activity findActivityById(Long id);
+    Activity findActivityByName(String name);
     Activity findActivityByClientAndId(Client currentUser, Long id);
+
+
 }

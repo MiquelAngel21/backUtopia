@@ -5,16 +5,14 @@ import com.utopiapp.demo.model.Activity;
 import com.utopiapp.demo.model.Client;
 import com.utopiapp.demo.model.UserMain;
 import org.springframework.data.domain.Page;
-
 import org.springframework.data.domain.Pageable;
+
 import java.util.List;
 import java.util.Map;
 
 public interface ActivityService {
     Page<Activity> getAllActivitiesByMostRecentDate(Pageable paging);
     List<Map<String, Object>> getActivitiesByUserAndMostRecentDate(Long clientId);
-
-    List<Map<String, Object>> getTopThreeActivitiesByRangeOfDates();
 
     Activity createNewActivity(Activity activity, ActivityDto activityDto, UserMain userMain);
 
@@ -28,7 +26,7 @@ public interface ActivityService {
 
     Map<String, Object> manageLike(Long id, UserMain userMain);
 
-    Map<String, Object> makePaginationWithDatabaseResults(String filterText, int start, int length);
+    Map<String, Object> makePaginationWithDatabaseResults(Client client, String typeOfSearch, String filterText, int start, int length);
 
     Activity getActivityByName(String name);
     Activity getActivityById(Long id);

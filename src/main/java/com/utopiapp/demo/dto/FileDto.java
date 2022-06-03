@@ -1,10 +1,5 @@
 package com.utopiapp.demo.dto;
 
-import com.utopiapp.demo.model.Activity;
-
-import javax.persistence.Column;
-import javax.persistence.ManyToOne;
-
 public class FileDto {
     private String name;
     private String content;

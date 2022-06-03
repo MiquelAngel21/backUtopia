@@ -2,12 +2,10 @@ package com.utopiapp.demo.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.hibernate.annotations.GenericGenerator;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
-import java.util.Collection;
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
@@ -41,27 +39,27 @@ public class Client{
     @Enumerated(EnumType.STRING)
     private Role role;
 
-    @ManyToOne()
+    @ManyToOne(fetch = FetchType.EAGER)
     @JsonIgnore
     private Club club;
 
-    @OneToMany(mappedBy = "client")
+    @OneToMany(mappedBy = "client", fetch = FetchType.EAGER)
     @JsonIgnore
     private Set<Petition> petitions;
 
-    @OneToMany(mappedBy = "client")
+    @OneToMany(mappedBy = "client", fetch = FetchType.EAGER)
     @JsonIgnore
     private Set<Activity> activities;
 
-    @OneToMany(mappedBy = "client")
+    @OneToMany(mappedBy = "client", fetch = FetchType.EAGER)
     @JsonIgnore
     private Set<ActivitySheet> activitySheets;
 
-    @OneToMany(mappedBy = "client")
+    @OneToMany(mappedBy = "client", fetch = FetchType.EAGER)
     @JsonIgnore
     private Set<Heart> hearts;
 
-    public Client(Long id, String name, String username, String lastname, String email, String password, LocalDateTime createdDate, Role role) {
+    public Client(Long id, String name, String username, String lastname, String email, String password, LocalDateTime createdDate, Role role, Club club, Set<Petition> petitions, Set<Activity> activities, Set<ActivitySheet> activitySheets, Set<Heart> hearts) {
         this.id = id;
         this.name = name;
         this.username = username;
@@ -70,6 +68,11 @@ public class Client{
         this.password = password;
         this.createdDate = createdDate;
         this.role = role;
+        this.club = club;
+        this.petitions = petitions;
+        this.activities = activities;
+        this.activitySheets = activitySheets;
+        this.hearts = hearts;
     }
 
     public Client(String name, String username, String lastname, String email, String password, LocalDateTime createdDate, Role role) {
@@ -80,6 +83,10 @@ public class Client{
         this.password = password;
         this.createdDate = createdDate;
         this.role = role;
+        this.petitions = new HashSet<>();
+        this.activities = new HashSet<>();
+        this.activitySheets = new HashSet<>();
+        this.hearts = new HashSet<>();
     }
 
     public Client() {
@@ -190,16 +197,8 @@ public class Client{
         this.activitySheets = activitySheets;
     }
 
-    public Set<Heart> getLikes() {
-        return hearts;
-    }
-
-    public void setLikes(Set<Heart> hearts) {
-        this.hearts = hearts;
-    }
-
     public UserMain toUserMain(){
-        return new UserMain(this.id, this.name, this.username, this.lastname, this.email, this.password, this.createdDate, this.role);
+        return new UserMain(this.id, this.name, this.username, this.lastname, this.email, this.password, this.createdDate, this.role, this.club, this.petitions, this.activities, this.activitySheets, this.hearts);
     }
 
     @Override

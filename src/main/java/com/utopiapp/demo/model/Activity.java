@@ -27,14 +27,14 @@ public class Activity {
     @Column(nullable = false)
     private LocalDateTime createdDate;
 
-    @OneToMany(mappedBy = "activity")
+    @OneToMany(mappedBy = "activity", fetch = FetchType.EAGER)
     private Set<Guide> guides;
 
     @ManyToOne
     @JsonIgnore
     private Client client;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             joinColumns=
             @JoinColumn(name="activities_id", referencedColumnName="id"),
@@ -43,7 +43,7 @@ public class Activity {
     )
     private Set<Tag> tags;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             joinColumns=
             @JoinColumn(name="activities_id", referencedColumnName="id"),
@@ -52,7 +52,7 @@ public class Activity {
     )
     private Set<Material> materials;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             joinColumns=
             @JoinColumn(name="activities_id", referencedColumnName="id"),
@@ -61,7 +61,7 @@ public class Activity {
     )
     private Set<File> files;
 
-    @OneToMany(mappedBy = "activity")
+    @OneToMany(mappedBy = "activity", fetch = FetchType.EAGER)
     @JsonIgnore
     private Set<Heart> hearts;
 
@@ -186,11 +186,7 @@ public class Activity {
                 "id=" + id +
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
-                ", guides=" + guides +
                 ", tags=" + tags +
-                ", materials=" + materials +
-                ", files=" + files +
-                ", hearts=" + hearts +
                 '}';
     }
 }

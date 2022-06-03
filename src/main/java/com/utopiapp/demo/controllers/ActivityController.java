@@ -35,9 +35,11 @@ public class ActivityController {
     @ResponseBody
     public Map<String, Object> getActivities(
             @RequestParam int start,
-            @RequestParam int length
+            @RequestParam int length,
+            Authentication authentication
     ) {
-        return activityService.makePaginationWithDatabaseResults(null, start, length);
+        UserMain userMain = (UserMain) authentication.getPrincipal();
+        return activityService.makePaginationWithDatabaseResults(userMain.toClient(), null, null, start, length);
     }
 
     @GetMapping(value = "/my-activities", produces = {"application/json"})
@@ -47,12 +49,6 @@ public class ActivityController {
     ){
         UserMain userMain = (UserMain) authentication.getPrincipal();
         return activityService.getActivitiesByUserAndMostRecentDate(userMain.getId());
-    }
-
-    @GetMapping(value = "/ranking", produces = {"application/json"})
-    @ResponseBody
-    public List<Map<String, Object>> getBestTopThree(){
-        return activityService.getTopThreeActivitiesByRangeOfDates();
     }
 
     @GetMapping(value = "/new-activity", produces = {"application/json"})
@@ -190,8 +186,35 @@ public class ActivityController {
     public Map<String, Object> filteredActivities(
             @PathVariable String filterText,
             @RequestParam int start,
-            @RequestParam int length
+            @RequestParam int length,
+            Authentication authentication
     ) {
-        return activityService.makePaginationWithDatabaseResults(filterText, start, length);
+        UserMain userMain = (UserMain) authentication.getPrincipal();
+        return activityService.makePaginationWithDatabaseResults(userMain.toClient(), null, filterText, start, length);
+    }
+
+    @GetMapping(value = "/type/{type}", produces = {"application/json"})
+    @ResponseBody
+    public Map<String, Object> typeOfActivitySearch(
+            @PathVariable String type,
+            @RequestParam int start,
+            @RequestParam int length,
+            Authentication authentication
+    ) {
+        UserMain userMain = (UserMain) authentication.getPrincipal();
+        return activityService.makePaginationWithDatabaseResults(userMain.toClient(), type, null, start, length);
+    }
+
+    @GetMapping(value = "/filter-activities/{searcher}/type/{type}", produces = {"application/json"})
+    @ResponseBody
+    public Map<String, Object> typeOfActivitySearch(
+            @PathVariable String searcher,
+            @PathVariable String type,
+            @RequestParam int start,
+            @RequestParam int length,
+            Authentication authentication
+    ) {
+        UserMain userMain = (UserMain) authentication.getPrincipal();
+        return activityService.makePaginationWithDatabaseResults(userMain.toClient(), type, searcher, start, length);
     }
 }

@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
-import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 @Entity
@@ -43,5 +43,18 @@ public class Tag {
 
     public void setActivities(Set<Activity> activities) {
         this.activities = activities;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Tag tag = (Tag) o;
+        return Objects.equals(id, tag.id) && Objects.equals(name, tag.name) && Objects.equals(activities, tag.activities);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, name, activities);
     }
 }

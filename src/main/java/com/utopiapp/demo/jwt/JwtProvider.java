@@ -1,6 +1,5 @@
 package com.utopiapp.demo.jwt;
 
-import com.utopiapp.demo.model.Client;
 import com.utopiapp.demo.model.UserMain;
 import io.jsonwebtoken.*;
 import org.slf4j.Logger;
