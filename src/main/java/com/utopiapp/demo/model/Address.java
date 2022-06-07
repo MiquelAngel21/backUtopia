@@ -11,8 +11,8 @@ public class Address {
     @GeneratedValue(generator="gen")
     private Long id;
 
-    @Column(nullable = false)
-    private int zipCode;
+    @Column(nullable = false, length = 8)
+    private String zipCode;
 
     @Column(nullable = false)
     private String street;
@@ -21,15 +21,9 @@ public class Address {
     private String city;
 
     @Column(nullable = false)
-    private int number;
+    private String number;
 
-    @Column(nullable = false)
-    private double longitude;
-
-    @Column(nullable = false)
-    private double latitude;
-
-    @OneToOne()
+    @OneToOne(mappedBy = "address")
     private Club club;
 
     public Long getId() {
@@ -40,11 +34,11 @@ public class Address {
         this.id = id;
     }
 
-    public int getZipCode() {
+    public String getZipCode() {
         return zipCode;
     }
 
-    public void setZipCode(int zipCode) {
+    public void setZipCode(String zipCode) {
         this.zipCode = zipCode;
     }
 
@@ -64,27 +58,19 @@ public class Address {
         this.city = city;
     }
 
-    public int getNumber() {
+    public String getNumber() {
         return number;
     }
 
-    public void setNumber(int number) {
+    public void setNumber(String number) {
         this.number = number;
     }
 
-    public double getLongitude() {
-        return longitude;
+    public Club getClub() {
+        return club;
     }
 
-    public void setLongitude(double longitude) {
-        this.longitude = longitude;
-    }
-
-    public double getLatitude() {
-        return latitude;
-    }
-
-    public void setLatitude(double latitude) {
-        this.latitude = latitude;
+    public void setClub(Club club) {
+        this.club = club;
     }
 }

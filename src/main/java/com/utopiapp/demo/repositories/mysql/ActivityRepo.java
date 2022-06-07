@@ -10,7 +10,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
-public interface ActivityRepoMysqlImpl extends JpaRepository<Activity, Long> {
+public interface ActivityRepo extends JpaRepository<Activity, Long> {
 
     Page<Activity> findAllByOrderByCreatedDateDescIdDesc(Pageable pageable);
     Page<Activity> findAllByNameLikeOrderByCreatedDateDescIdDesc(String name, Pageable pageable);

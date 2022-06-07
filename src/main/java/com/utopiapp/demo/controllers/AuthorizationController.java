@@ -5,18 +5,19 @@ import com.utopiapp.demo.dto.LoginDto;
 import com.utopiapp.demo.dto.RegisterDto;
 import com.utopiapp.demo.jwt.JwtProvider;
 import com.utopiapp.demo.model.Client;
+import com.utopiapp.demo.model.File;
 import com.utopiapp.demo.model.UserMain;
 import com.utopiapp.demo.service.interfaces.ClientService;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 
@@ -50,8 +51,20 @@ public class AuthorizationController{
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
         UserMain userMain = (UserMain) authentication.getPrincipal();
-        Map<String, Object> currentUser = clientService.getClientOnJsonFormat(clientService.getClientByEmail(userMain.getEmail()));
+        Map<String, Object> currentUser = clientService.getClientInJsonFormat(clientService.getClientByEmail(userMain.getEmail()));
         String jwt = jwtProvider.generateToken(userMain);
         return new JwtDto(jwt, currentUser);
+    }
+
+    @GetMapping(value = "/image/{id}")
+    public ResponseEntity<byte[]> getImage(
+            @PathVariable Long id
+    ) {
+        File file = clientService.getImageById(id);
+        HttpHeaders httpHeaders = clientService.chooseImageType(file);
+
+        return ResponseEntity.ok()
+                .headers(httpHeaders)
+                .body(file.getContent());
     }
 }

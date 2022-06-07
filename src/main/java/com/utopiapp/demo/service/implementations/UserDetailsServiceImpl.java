@@ -1,7 +1,7 @@
 package com.utopiapp.demo.service.implementations;
 
 import com.utopiapp.demo.model.Client;
-import com.utopiapp.demo.repositories.mysql.ClientRepoMysqlImpl;
+import com.utopiapp.demo.repositories.mysql.ClientRepo;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -9,15 +9,15 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class UserDetailsServiceImpl implements UserDetailsService {
-    private final ClientRepoMysqlImpl clientRepoMysqlImpl;
+    private final ClientRepo clientRepo;
 
-    public UserDetailsServiceImpl(ClientRepoMysqlImpl clientRepoMysqlImpl) {
-        this.clientRepoMysqlImpl = clientRepoMysqlImpl;
+    public UserDetailsServiceImpl(ClientRepo clientRepo) {
+        this.clientRepo = clientRepo;
     }
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        Client client = clientRepoMysqlImpl.findByEmail(email);
+        Client client = clientRepo.findByEmail(email);
 
         return client.toUserMain();
     }

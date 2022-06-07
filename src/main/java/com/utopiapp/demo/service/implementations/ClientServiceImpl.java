@@ -3,10 +3,14 @@ package com.utopiapp.demo.service.implementations;
 import com.utopiapp.demo.dto.LoginDto;
 import com.utopiapp.demo.dto.RegisterDto;
 import com.utopiapp.demo.model.Client;
+import com.utopiapp.demo.model.File;
 import com.utopiapp.demo.model.Heart;
 import com.utopiapp.demo.model.Role;
-import com.utopiapp.demo.repositories.mysql.ClientRepoMysqlImpl;
+import com.utopiapp.demo.repositories.mysql.ClientRepo;
+import com.utopiapp.demo.repositories.mysql.FileRepo;
 import com.utopiapp.demo.service.interfaces.ClientService;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
@@ -20,25 +24,27 @@ import java.util.*;
 @Service
 public class ClientServiceImpl implements ClientService {
 
-    private final ClientRepoMysqlImpl clientRepoMysqlImpl;
+    private final ClientRepo clientRepo;
     private final PasswordEncoder passwordEncoder;
     private final HttpSession session;
+    private final FileRepo fileRepo;
 
-    public ClientServiceImpl(ClientRepoMysqlImpl clientRepoMysqlImpl, PasswordEncoder passwordEncoder, HttpSession session) {
-        this.clientRepoMysqlImpl = clientRepoMysqlImpl;
+    public ClientServiceImpl(ClientRepo clientRepo, PasswordEncoder passwordEncoder, HttpSession session, FileRepo fileRepo) {
+        this.clientRepo = clientRepo;
         this.passwordEncoder = passwordEncoder;
         this.session = session;
+        this.fileRepo = fileRepo;
     }
 
 
     @Override
     public Client getClientByEmail(String email) {
-        return clientRepoMysqlImpl.findByEmail(email);
+        return clientRepo.findByEmail(email);
     }
 
     @Override
     public Client save(Client newClient) {
-        return clientRepoMysqlImpl.save(newClient);
+        return clientRepo.save(newClient);
     }
 
     @Override
@@ -67,7 +73,7 @@ public class ClientServiceImpl implements ClientService {
                 Role.USER
         );
 
-        client = clientRepoMysqlImpl.save(client);
+        client = clientRepo.save(client);
         return client;
     }
 
@@ -106,7 +112,20 @@ public class ClientServiceImpl implements ClientService {
     }
 
     @Override
-    public Map<String, Object> getClientOnJsonFormat(Client client) {
+    public List<Map<String, Object>> getListOfClientsInJsonFormat(Collection<Client> clients){
+
+        List<Map<String, Object>> allClientsInJsonFormat = new ArrayList<>();
+
+        for (Client client : clients){
+            Map<String, Object> clientInJsonFormat = getClientInJsonFormat(client);
+            allClientsInJsonFormat.add(clientInJsonFormat);
+        }
+
+        return allClientsInJsonFormat;
+    }
+
+    @Override
+    public Map<String, Object> getClientInJsonFormat(Client client) {
         Map<String, Object> currentUserData = new HashMap<>();
         currentUserData.put("id", client.getId().toString());
         currentUserData.put("name", client.getName());
@@ -130,5 +149,24 @@ public class ClientServiceImpl implements ClientService {
         }
 
         return heartsInJsonFormat;
+    }
+
+    @Override
+    public File getImageById(Long id) {
+        Optional<File> file = fileRepo.findById(id);
+        return file.orElse(null);
+    }
+
+    @Override
+    public HttpHeaders chooseImageType(File file) {
+        HttpHeaders httpHeaders = new HttpHeaders();
+        if (file.getMediaType().equals("image/png")){
+            httpHeaders.setContentType(MediaType.IMAGE_PNG);
+        } else if (file.getMediaType().equals("image/jpeg")){
+            httpHeaders.setContentType(MediaType.IMAGE_JPEG);
+        } else {
+            httpHeaders.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+        }
+        return httpHeaders;
     }
 }

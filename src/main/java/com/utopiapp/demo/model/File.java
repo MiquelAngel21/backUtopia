@@ -26,6 +26,10 @@ public class File {
     @JsonIgnore
     private Set<Activity> activities;
 
+    @ManyToOne()
+    @JsonIgnore
+    private Club club;
+
     public Long getId() {
         return id;
     }
@@ -64,6 +68,14 @@ public class File {
 
     public void setActivities(Set<Activity> activity) {
         this.activities = activity;
+    }
+
+    public Club getClub() {
+        return club;
+    }
+
+    public void setClub(Club club) {
+        this.club = club;
     }
 
     @Override
