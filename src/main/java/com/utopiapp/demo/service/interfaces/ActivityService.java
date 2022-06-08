@@ -3,6 +3,7 @@ package com.utopiapp.demo.service.interfaces;
 import com.utopiapp.demo.dto.ActivityDto;
 import com.utopiapp.demo.model.Activity;
 import com.utopiapp.demo.model.Client;
+import com.utopiapp.demo.model.Tag;
 import com.utopiapp.demo.model.UserMain;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -33,4 +34,6 @@ public interface ActivityService {
 
     Map<String, Object> getActivityDataJson(Long id);
     boolean isOwner(Client currentClient, Long activityId);
+
+    List<Tag> getAllTags();
 }

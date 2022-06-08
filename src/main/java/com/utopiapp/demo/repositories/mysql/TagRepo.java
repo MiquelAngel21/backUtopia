@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Set;
 
 @Repository
-public interface TagRepoMysqlImpl extends JpaRepository<Tag, Long> {
+public interface TagRepo extends JpaRepository<Tag, Long> {
     List<Tag> findAll();
     List<Tag> findByActivitiesIn(Set<Activity> activities);
 }

@@ -17,14 +17,14 @@ import java.util.*;
 @Service
 public class ActivityServiceImpl implements ActivityService {
 
-    private final ActivityRepoMysqlImpl activityRepoMysql;
-    private final FileRepoMysqlImpl fileRepoMysql;
-    private final MaterialRepoMysqlImpl materialRepoMysql;
-    private final HeartRepoMysqlImpl heartRepoMysql;
-    private final TagRepoMysqlImpl tagRepoMysql;
+    private final ActivityRepo activityRepoMysql;
+    private final FileRepo fileRepoMysql;
+    private final MaterialRepo materialRepoMysql;
+    private final HeartRepo heartRepoMysql;
+    private final TagRepo tagRepoMysql;
     private final ClientService clientService;
 
-    public ActivityServiceImpl(ActivityRepoMysqlImpl activityRepoMysql, FileRepoMysqlImpl fileRepoMysql, MaterialRepoMysqlImpl materialRepoMysql, HeartRepoMysqlImpl heartRepoMysql, TagRepoMysqlImpl tagRepoMysql, ClientServiceImpl clientService) {
+    public ActivityServiceImpl(ActivityRepo activityRepoMysql, FileRepo fileRepoMysql, MaterialRepo materialRepoMysql, HeartRepo heartRepoMysql, TagRepo tagRepoMysql, ClientServiceImpl clientService) {
         this.activityRepoMysql = activityRepoMysql;
         this.fileRepoMysql = fileRepoMysql;
         this.materialRepoMysql = materialRepoMysql;
@@ -269,7 +269,7 @@ public class ActivityServiceImpl implements ActivityService {
         activityJson.put("description", activity.getDescription());
         activityJson.put("createdDate", activity.getCreatedDate());
         activityJson.put("guides", activity.getGuide());
-        activityJson.put("client", clientService.getClientOnJsonFormat(activity.getClient()));
+        activityJson.put("client", clientService.getClientInJsonFormat(activity.getClient()));
         activityJson.put("tags", activity.getTags());
         activityJson.put("materials", activity.getMaterials());
         activityJson.put("files", activity.getFiles());
@@ -310,6 +310,11 @@ public class ActivityServiceImpl implements ActivityService {
             return true;
         }
         return false;
+    }
+
+    @Override
+    public List<Tag> getAllTags() {
+        return tagRepoMysql.findAll();
     }
 
     private List<Map<String, Object>> heartsToJson(Set<Heart> hearts) {

@@ -8,7 +8,7 @@ import org.springframework.stereotype.Repository;
 import java.util.Set;
 
 @Repository
-public interface ClientRepoMysqlImpl extends JpaRepository<Client, Long> {
+public interface ClientRepo extends JpaRepository<Client, Long> {
     Client findByEmail(String email);
     Client findByActivitiesInAndId(Set<Activity> activities, Long Id);
 }
