@@ -80,23 +80,10 @@ public class ActivityController {
         if (activityDto.getFiles().size() > 3) {
             return new ResponseEntity<>(new Message("Només pots adjuntar 3 fitxers com a màxim"), HttpStatus.BAD_REQUEST);
         }
-        if (activityService.getActivityByName(activityDto.getName()) != null){
+        if (activityService.getActivityByName(activityDto.getName()) != null) {
             return new ResponseEntity<>(new Message("Aquest nom d'activitat ja està en ús"), HttpStatus.BAD_REQUEST);
         }
             return new ResponseEntity<>(activityService.createNewActivity(activity, activityDto, userMain, false), HttpStatus.OK);
-            if (activityDto.isEvent() && (!currentUser.getRole().equals("DIRECTOR"))) {
-                return new ResponseEntity<>(new Message("No tens permisos per crear events"), HttpStatus.CONFLICT);
-            }
-            if (bindingResult.hasErrors()) {
-                return new ResponseEntity<>(new Message("Algún camp és incompleto o es incorrecto"), HttpStatus.BAD_REQUEST);
-            }
-            if (activityDto.getFiles().size() > 3) {
-                return new ResponseEntity<>(new Message("Només pots adjuntar 3 fitxers com a màxim"), HttpStatus.BAD_REQUEST);
-            }
-            if (activityService.getActivityByName(activityDto.getName()) != null) {
-                return new ResponseEntity<>(new Message("Aquest nom d'activitat ja està en ús"), HttpStatus.BAD_REQUEST);
-            }
-            return new ResponseEntity<>(activityService.createNewActivity(activity, activityDto, userMain), HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(new Message("Error creant l'activitat"), HttpStatus.CONFLICT);
         }
