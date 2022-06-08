@@ -14,9 +14,9 @@ public interface ActivityService {
     Page<Activity> getAllActivitiesByMostRecentDate(Pageable paging);
     List<Map<String, Object>> getActivitiesByUserAndMostRecentDate(Long clientId);
 
-    Activity createNewActivity(Activity activity, ActivityDto activityDto, UserMain userMain);
+    Activity createNewActivity(Activity activity, ActivityDto activityDto, UserMain userMain, boolean isUpdate);
 
-    Activity updateAnExistingActivity(Long id, Activity activity, ActivityDto activityDto, UserMain userMain);
+    void updateAnExistingActivity(Long id, Activity activity, ActivityDto activityDto, UserMain userMain);
 
     void deleteActivity(Long id);
 

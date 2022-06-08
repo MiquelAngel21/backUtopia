@@ -86,7 +86,7 @@ public class ActivityController {
         if (activityService.getActivityByName(activityDto.getName()) != null){
             return new ResponseEntity<>(new Message("Aquest nom d'activitat ja està en ús"), HttpStatus.BAD_REQUEST);
         }
-            return new ResponseEntity<>(activityService.createNewActivity(activity, activityDto, userMain), HttpStatus.OK);
+            return new ResponseEntity<>(activityService.createNewActivity(activity, activityDto, userMain, false), HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(new Message("Error creant l'activitat"),HttpStatus.CONFLICT);
         }
@@ -131,14 +131,11 @@ public class ActivityController {
             if (bindingResult.hasErrors()) {
                 return new ResponseEntity<>(new Message("Algún camp és incompleto o es incorrecto"), HttpStatus.BAD_REQUEST);
             }
-            if (activityDto.getFiles().size() > 3) {
-                return new ResponseEntity<>(new Message("Només pots adjuntar 3 fitxers com a màxim"), HttpStatus.BAD_REQUEST);
-            }
             if (activityService.getActivityByName(activityDto.getName()) != null) {
                 return new ResponseEntity<>(new Message("Aquest nom d'activitat ja està en ús"), HttpStatus.BAD_REQUEST);
             }
             activityService.updateAnExistingActivity(id, activity, activityDto, userMain);
-            return new ResponseEntity<>("Activitat editada correctament!",HttpStatus.OK);
+            return new ResponseEntity<>(HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.CONFLICT);
         }

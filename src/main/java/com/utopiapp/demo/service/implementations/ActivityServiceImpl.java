@@ -45,18 +45,17 @@ public class ActivityServiceImpl implements ActivityService {
     }
 
     @Override
-    public Activity createNewActivity(Activity activity, ActivityDto activityDto, UserMain userMain) {
+    public Activity createNewActivity(Activity activity, ActivityDto activityDto, UserMain userMain, boolean isUpdate) {
         activity.setName(activityDto.getName());
         activity.setEvent(activityDto.isEvent());
         activity.setDescription(activityDto.getDescription());
         activity.setCreatedDate(LocalDateTime.now());
         activity.setClient(userMain.toClient());
-
         activity.setTags(activityDto.getTags());
-        activity.setHearts(new HashSet<>());
-
         addMaterialsToActivity(activity, activityDto);
-        addFilesToActivity(activity, activityDto);
+        if (!isUpdate) {
+            addFilesToActivity(activity, activityDto);
+        }
 
         activity = activityRepoMysql.save(activity);
 
@@ -76,10 +75,7 @@ public class ActivityServiceImpl implements ActivityService {
                 if (material.getAmount() > 0) {
                     finalMaterial.add(material);
                     materialRepoMysql.save(material);
-                } else {
-                    throw new RuntimeException("La quantitat ha de ser superior a 0");
                 }
-
             }
         }
         activity.setMaterials(finalMaterial);
@@ -117,9 +113,9 @@ public class ActivityServiceImpl implements ActivityService {
     }
 
     @Override
-    public Activity updateAnExistingActivity(Long id, Activity activity, ActivityDto activityDto, UserMain userMain) {
+    public void updateAnExistingActivity(Long id, Activity activity, ActivityDto activityDto, UserMain userMain) {
         activity.setId(id);
-        return createNewActivity(activity, activityDto, userMain);
+        Activity updatedActivity = createNewActivity(activity, activityDto, userMain, true);
     }
 
     @Override

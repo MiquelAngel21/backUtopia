@@ -2,6 +2,9 @@ package com.utopiapp.demo.service.implementations;
 
 import com.utopiapp.demo.dto.LoginDto;
 import com.utopiapp.demo.dto.RegisterDto;
+import com.utopiapp.demo.dto.SetingsDataDto;
+import com.utopiapp.demo.exceptions.EmptyFieldsException;
+import com.utopiapp.demo.exceptions.IncorrectPasswordException;
 import com.utopiapp.demo.model.Client;
 import com.utopiapp.demo.model.Heart;
 import com.utopiapp.demo.model.Role;
@@ -116,6 +119,38 @@ public class ClientServiceImpl implements ClientService {
         currentUserData.put("role", client.getRole());
         currentUserData.put("Hearts", heartsToJsonFormat(client.getHearts()));
         return currentUserData;
+    }
+
+    @Override
+    public void updateDataClient(SetingsDataDto setingsDataDto, Client currentClient) {
+        if (setingsDataDto.getUpdatingPassword().equals("false")){
+            if (!passwordEncoder.matches(setingsDataDto.getConfirmPassword1(), currentClient.getPassword())){
+                throw new IncorrectPasswordException();
+            }
+            if (setingsDataDto.getName().equals("") || setingsDataDto.getLastname().equals("") || setingsDataDto.getEmail().equals("")){
+                throw new EmptyFieldsException();
+            }
+        } else {
+            if (!currentClient.getPassword().equals(passwordEncoder.encode(setingsDataDto.getConfirmPassword2()))){
+                throw new IncorrectPasswordException();
+            }
+            if (setingsDataDto.getNewPassword().equals("") || setingsDataDto.getRepeatPassword().equals("")){
+                throw new EmptyFieldsException();
+            }
+            if (!passwordEncoder.encode(setingsDataDto.getNewPassword()).equals(setingsDataDto.getRepeatPassword())
+                    && (passwordEncoder.encode(setingsDataDto.getNewPassword()).equals(currentClient.getPassword()))){
+                throw new IncorrectPasswordException();
+            }
+        }
+
+       if (setingsDataDto.getUpdatingPassword().equals("false")){
+           currentClient.setName(setingsDataDto.getName());
+           currentClient.setEmail(setingsDataDto.getEmail());
+           currentClient.setLastname(setingsDataDto.getLastname());
+       } else {
+           currentClient.setPassword(passwordEncoder.encode(setingsDataDto.getNewPassword()));
+       }
+       clientRepoMysqlImpl.save(currentClient);
     }
 
     private Object heartsToJsonFormat(Set<Heart> hearts) {
