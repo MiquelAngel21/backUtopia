@@ -10,4 +10,5 @@ public interface ClubService {
     Club createClub(ClubWithAddressDto clubWithAddressDto, Client toClient);
 
     Map<String, Object> getPaginatedClubs(int start, int length);
+    String getClubNameByClient(Client client);
 }

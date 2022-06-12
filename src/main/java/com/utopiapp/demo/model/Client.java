@@ -20,6 +20,9 @@ public class Client{
     @Column(nullable = false)
     private String name;
 
+    @Column(nullable = true)
+    private String description;
+
     @Column(nullable = false, unique = true, length = 200)
     private String username;
 
@@ -107,6 +110,14 @@ public class Client{
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     public void setUsername(String username) {

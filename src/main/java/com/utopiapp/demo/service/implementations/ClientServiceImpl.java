@@ -157,19 +157,20 @@ public class ClientServiceImpl implements ClientService {
                 throw new EmptyFieldsException();
             }
             if (!passwordEncoder.encode(setingsDataDto.getNewPassword()).equals(setingsDataDto.getRepeatPassword())
-                    && (passwordEncoder.encode(setingsDataDto.getNewPassword()).equals(currentClient.getPassword()))){
+                    || (passwordEncoder.matches(setingsDataDto.getNewPassword(), currentClient.getPassword()))){
                 throw new IncorrectPasswordException();
             }
         }
-
        if (setingsDataDto.getUpdatingPassword().equals("false")){
            currentClient.setName(setingsDataDto.getName());
            currentClient.setEmail(setingsDataDto.getEmail());
            currentClient.setLastname(setingsDataDto.getLastname());
+           currentClient.setDescription(setingsDataDto.getDescription());
+           currentClient.setUsername(setingsDataDto.getUsername());
        } else {
            currentClient.setPassword(passwordEncoder.encode(setingsDataDto.getNewPassword()));
        }
-       clientRepoMysqlImpl.save(currentClient);
+        clientRepo.save(currentClient);
     }
 
     private Object heartsToJsonFormat(Set<Heart> hearts) {

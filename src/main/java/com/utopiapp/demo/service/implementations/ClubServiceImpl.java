@@ -84,6 +84,17 @@ public class ClubServiceImpl implements ClubService {
         return json;
     }
 
+    @Override
+    public String getClubNameByClient(Client currentClient) {
+        Set<Client> clients = new HashSet<>();
+        clients.add(currentClient);
+        Club club = clubRepo.findClubByClientsIn(clients);
+        if (club != null){
+            return club.getName();
+        }
+        return null;
+    }
+
     private List<Map<String, Object>> convertClubListIntoJson(List<Club> clubs) {
         List<Map<String, Object>> allClubsInJsonFormat = new ArrayList<>();
 

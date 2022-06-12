@@ -63,6 +63,7 @@ public class ActivityServiceImpl implements ActivityService {
         return activity;
     }
 
+
     private void addMaterialsToActivity(Activity activity, ActivityDto activityDto) {
         Set<Material> finalMaterial = new HashSet<>();
         for (Material material : activityDto.getMaterials()) {
@@ -315,6 +316,18 @@ public class ActivityServiceImpl implements ActivityService {
     @Override
     public List<Tag> getAllTags() {
         return tagRepoMysql.findAll();
+    }
+
+    @Override
+    public int getNumberOfLikesByClient(Client client) {
+        int countLikes = heartRepoMysql.findHeartsByClient(client).size();
+        return countLikes;
+    }
+
+    @Override
+    public int getNumberOfActivitiesByClient(Client client){
+        int countActivities = activityRepoMysql.findActivitiesByClient(client).size();
+        return countActivities;
     }
 
     private List<Map<String, Object>> heartsToJson(Set<Heart> hearts) {

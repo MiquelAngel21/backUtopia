@@ -4,16 +4,41 @@ public class SetingsDataDto {
     private String name;
     private String lastname;
     private String email;
+    private String username;
+    private String description;
+    private String clubName;
+    private int countLikes;
+    private int countActivities;
     private String confirmPassword1;
     private String newPassword;
     private String repeatPassword;
     private String confirmPassword2;
     private String updatingPassword;
 
-    public SetingsDataDto(String name, String lastname, String email) {
+    public SetingsDataDto(String name, String lastname, String email, String username, String clubName, int countLikes, int countActivities) {
         this.name = name;
         this.lastname = lastname;
         this.email = email;
+        this.username = username;
+        this.clubName = clubName;
+        this.countLikes = countLikes;
+        this.countActivities = countActivities;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getClubName() {
+        return clubName;
+    }
+
+    public void setClubName(String clubName) {
+        this.clubName = clubName;
     }
 
     public String getName() {
@@ -26,6 +51,30 @@ public class SetingsDataDto {
 
     public String getLastname() {
         return lastname;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public int getCountLikes() {
+        return countLikes;
+    }
+
+    public void setCountLikes(int countLikes) {
+        this.countLikes = countLikes;
+    }
+
+    public int getCountActivities() {
+        return countActivities;
+    }
+
+    public void setCountActivities(int countActivities) {
+        this.countActivities = countActivities;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     public void setLastname(String lastname) {

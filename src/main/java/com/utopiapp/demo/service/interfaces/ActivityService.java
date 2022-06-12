@@ -36,4 +36,7 @@ public interface ActivityService {
     boolean isOwner(Client currentClient, Long activityId);
 
     List<Tag> getAllTags();
+
+    int getNumberOfLikesByClient(Client client);
+    int getNumberOfActivitiesByClient(Client client);
 }

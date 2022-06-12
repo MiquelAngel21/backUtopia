@@ -22,7 +22,6 @@ public interface ClientService {
    void noRareCharactersInText(String text);
    void verifyLoginFormInformation(LoginDto loginDTO);
    Map<String, Object> getUserAttributes();
-   Map<String, Object> getClientOnJsonFormat(Client client);
    void updateDataClient(SetingsDataDto setingsDataDto, Client currentClient);
 
    List<Map<String, Object>> getListOfClientsInJsonFormat(Collection<Client> clients);
