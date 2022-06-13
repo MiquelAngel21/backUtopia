@@ -1,5 +1,6 @@
 package com.utopiapp.demo.controllers;
 
+import com.utopiapp.demo.exceptions.AlreadyInAClubException;
 import com.utopiapp.demo.exceptions.EmptyFieldsException;
 import com.utopiapp.demo.exceptions.IncorrectPasswordException;
 import org.springframework.http.HttpStatus;
@@ -24,6 +25,17 @@ public class ExceptionController {
         } else if (runtimeException instanceof EmptyFieldsException){
             errors.put("message", new EmptyFieldsException().getMessage());
             return new ResponseEntity<>(errors, HttpStatus.NO_CONTENT);
+        }
+        return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler({AlreadyInAClubException.class})
+    public ResponseEntity<?> clubExceptions(RuntimeException runtimeException){
+        errors.clear();
+        if (runtimeException instanceof AlreadyInAClubException){
+            System.out.println("HEY");
+            errors.put("message", new AlreadyInAClubException().getMessage());
+            return new ResponseEntity<>(errors, HttpStatus.CONFLICT);
         }
         return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
     }

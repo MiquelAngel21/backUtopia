@@ -39,12 +39,13 @@ public class Client{
     @Column(nullable = false)
     private LocalDateTime createdDate;
 
-    @Enumerated(EnumType.STRING)
-    private Role role;
-
     @ManyToOne(fetch = FetchType.EAGER)
     @JsonIgnore
     private Club club;
+
+    @OneToOne(fetch = FetchType.EAGER)
+    @JsonIgnore
+    private File file;
 
     @OneToMany(mappedBy = "client", fetch = FetchType.EAGER)
     @JsonIgnore
@@ -56,13 +57,14 @@ public class Client{
 
     @OneToMany(mappedBy = "client", fetch = FetchType.EAGER)
     @JsonIgnore
-    private Set<ActivitySheet> activitySheets;
-
-    @OneToMany(mappedBy = "client", fetch = FetchType.EAGER)
-    @JsonIgnore
     private Set<Heart> hearts;
 
-    public Client(Long id, String name, String username, String lastname, String email, String password, LocalDateTime createdDate, Role role, Club club, Set<Petition> petitions, Set<Activity> activities, Set<ActivitySheet> activitySheets, Set<Heart> hearts) {
+    @OneToOne(mappedBy = "person", fetch = FetchType.EAGER)
+    @JsonIgnore
+    private Coordinator coordinator;
+
+
+    public Client(Long id, String name, String username, String lastname, String email, String password, LocalDateTime createdDate, Club club, Set<Petition> petitions, Set<Activity> activities, Set<Heart> hearts) {
         this.id = id;
         this.name = name;
         this.username = username;
@@ -70,25 +72,21 @@ public class Client{
         this.email = email;
         this.password = password;
         this.createdDate = createdDate;
-        this.role = role;
         this.club = club;
         this.petitions = petitions;
         this.activities = activities;
-        this.activitySheets = activitySheets;
         this.hearts = hearts;
     }
 
-    public Client(String name, String username, String lastname, String email, String password, LocalDateTime createdDate, Role role) {
+    public Client(String name, String username, String lastname, String email, String password, LocalDateTime createdDate) {
         this.name = name;
         this.username = username;
         this.lastname = lastname;
         this.email = email;
         this.password = password;
         this.createdDate = createdDate;
-        this.role = role;
         this.petitions = new HashSet<>();
         this.activities = new HashSet<>();
-        this.activitySheets = new HashSet<>();
         this.hearts = new HashSet<>();
     }
 
@@ -168,14 +166,6 @@ public class Client{
         this.createdDate = createdDate;
     }
 
-    public Role getRole() {
-        return role;
-    }
-
-    public void setRole(Role role) {
-        this.role = role;
-    }
-
     public Club getClub() {
         return club;
     }
@@ -200,16 +190,24 @@ public class Client{
         this.activities = activities;
     }
 
-    public Set<ActivitySheet> getActivitySheets() {
-        return activitySheets;
+    public File getFile() {
+        return file;
     }
 
-    public void setActivitySheets(Set<ActivitySheet> activitySheets) {
-        this.activitySheets = activitySheets;
+    public void setFile(File file) {
+        this.file = file;
+    }
+
+    public Coordinator getCoordinator() {
+        return coordinator;
+    }
+
+    public void setCoordinator(Coordinator coordinator) {
+        this.coordinator = coordinator;
     }
 
     public UserMain toUserMain(){
-        return new UserMain(this.id, this.name, this.username, this.lastname, this.email, this.password, this.createdDate, this.role, this.club, this.petitions, this.activities, this.activitySheets, this.hearts);
+        return new UserMain(this.id, this.name, this.username, this.lastname, this.email, this.password, this.createdDate, this.club, this.petitions, this.activities, this.hearts);
     }
 
     @Override
@@ -222,7 +220,6 @@ public class Client{
                 ", email='" + email + '\'' +
                 ", password='" + password + '\'' +
                 ", createdDate=" + createdDate +
-                ", role=" + role +
                 '}';
     }
 
@@ -231,11 +228,11 @@ public class Client{
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Client client = (Client) o;
-        return Objects.equals(id, client.id) && Objects.equals(name, client.name) && Objects.equals(username, client.username) && Objects.equals(lastname, client.lastname) && Objects.equals(email, client.email) && Objects.equals(createdDate, client.createdDate) && role == client.role && Objects.equals(club, client.club);
+        return Objects.equals(id, client.id) && Objects.equals(name, client.name) && Objects.equals(username, client.username) && Objects.equals(lastname, client.lastname) && Objects.equals(email, client.email) && Objects.equals(createdDate, client.createdDate) && Objects.equals(club, client.club);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, username, lastname, email, createdDate, role, club);
+        return Objects.hash(id, name, username, lastname, email, createdDate, club);
     }
 }

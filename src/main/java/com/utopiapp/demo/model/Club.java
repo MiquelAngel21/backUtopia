@@ -38,16 +38,16 @@ public class Club {
     private Address address;
 
     @OneToMany(mappedBy = "club")
-    private Set<ActivitySheet> activitySheets;
-
-    @OneToMany(mappedBy = "club")
     private Set<Petition> petitions;
 
     @OneToMany(mappedBy = "club")
-    private Set<Client> clients;
+    private Set<Client> monitors;
 
     @OneToMany(mappedBy = "club")
     private Set<File> files;
+
+    @OneToMany(fetch = FetchType.EAGER, mappedBy = "club")
+    private Set<Coordinator> coordinators;
 
     public Long getId() {
         return id;
@@ -121,14 +121,6 @@ public class Club {
         this.address = address;
     }
 
-    public Set<ActivitySheet> getActivitySheets() {
-        return activitySheets;
-    }
-
-    public void setActivitySheets(Set<ActivitySheet> activitySheets) {
-        this.activitySheets = activitySheets;
-    }
-
     public Set<Petition> getPetitions() {
         return petitions;
     }
@@ -137,19 +129,27 @@ public class Club {
         this.petitions = petitions;
     }
 
-    public Set<Client> getClients() {
-        return clients;
-    }
-
-    public void setClients(Set<Client> clients) {
-        this.clients = clients;
-    }
-
     public Set<File> getFiles() {
         return files;
     }
 
     public void setFiles(Set<File> files) {
         this.files = files;
+    }
+
+    public Set<Client> getMonitors() {
+        return monitors;
+    }
+
+    public void setMonitors(Set<Client> monitors) {
+        this.monitors = monitors;
+    }
+
+    public Set<Coordinator> getCoordinators() {
+        return coordinators;
+    }
+
+    public void setCoordinators(Set<Coordinator> coordinators) {
+        this.coordinators = coordinators;
     }
 }

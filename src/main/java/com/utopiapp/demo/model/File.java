@@ -30,6 +30,10 @@ public class File {
     @JsonIgnore
     private Club club;
 
+    @OneToOne(mappedBy = "file")
+    @JsonIgnore
+    private Client client;
+
     public Long getId() {
         return id;
     }

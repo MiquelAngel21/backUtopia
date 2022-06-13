@@ -25,9 +25,6 @@ public class Petition {
     @ManyToOne
     private Client client;
 
-    @ManyToMany(mappedBy = "petitions")
-    private Set<ActivitySheet> activitySheets;
-
     public Long getId() {
         return id;
     }
@@ -66,13 +63,5 @@ public class Petition {
 
     public void setClient(Client client) {
         this.client = client;
-    }
-
-    public Set<ActivitySheet> getActivitySheets() {
-        return activitySheets;
-    }
-
-    public void setActivitySheets(Set<ActivitySheet> activitySheets) {
-        this.activitySheets = activitySheets;
     }
 }

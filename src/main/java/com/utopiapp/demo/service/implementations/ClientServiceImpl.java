@@ -8,7 +8,6 @@ import com.utopiapp.demo.exceptions.IncorrectPasswordException;
 import com.utopiapp.demo.model.Client;
 import com.utopiapp.demo.model.File;
 import com.utopiapp.demo.model.Heart;
-import com.utopiapp.demo.model.Role;
 import com.utopiapp.demo.repositories.mysql.ClientRepo;
 import com.utopiapp.demo.repositories.mysql.FileRepo;
 import com.utopiapp.demo.service.interfaces.ClientService;
@@ -50,18 +49,6 @@ public class ClientServiceImpl implements ClientService {
         return clientRepo.save(newClient);
     }
 
-    @Override
-    public Role chooseRole(String role) {
-        switch (role){
-            case "user":
-                return Role.USER;
-            case "monitor":
-                return Role.MONITOR;
-            case "director":
-                return Role.DIRECTOR;
-        }
-        return null;
-    }
 
     @Override
     public Client addClient(RegisterDto registerDTO) {
@@ -72,8 +59,7 @@ public class ClientServiceImpl implements ClientService {
                 registerDTO.getLastname(),
                 registerDTO.getEmail(),
                 passwordEncoder.encode(registerDTO.getPassword()),
-                LocalDateTime.now(),
-                Role.USER
+                LocalDateTime.now()
         );
 
         client = clientRepo.save(client);
@@ -135,7 +121,6 @@ public class ClientServiceImpl implements ClientService {
         currentUserData.put("username", client.getUsername());
         currentUserData.put("lastname", client.getLastname());
         currentUserData.put("email", client.getEmail());
-        currentUserData.put("role", client.getRole());
         currentUserData.put("Hearts", heartsToJsonFormat(client.getHearts()));
         return currentUserData;
     }

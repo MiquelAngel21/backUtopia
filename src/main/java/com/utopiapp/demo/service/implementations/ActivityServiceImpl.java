@@ -268,7 +268,6 @@ public class ActivityServiceImpl implements ActivityService {
         activityJson.put("isEvent", activity.isEvent());
         activityJson.put("description", activity.getDescription());
         activityJson.put("createdDate", activity.getCreatedDate());
-        activityJson.put("guides", activity.getGuide());
         activityJson.put("client", clientService.getClientInJsonFormat(activity.getClient()));
         activityJson.put("tags", activity.getTags());
         activityJson.put("materials", activity.getMaterials());

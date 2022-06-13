@@ -1,11 +1,9 @@
 package com.utopiapp.demo.service.implementations;
 
 import com.utopiapp.demo.dto.*;
+import com.utopiapp.demo.exceptions.AlreadyInAClubException;
 import com.utopiapp.demo.model.*;
-import com.utopiapp.demo.repositories.mysql.AddressRepo;
-import com.utopiapp.demo.repositories.mysql.ClubRepo;
-import com.utopiapp.demo.repositories.mysql.FileRepo;
-import com.utopiapp.demo.repositories.mysql.PetitionRepo;
+import com.utopiapp.demo.repositories.mysql.*;
 import com.utopiapp.demo.service.interfaces.ClientService;
 import com.utopiapp.demo.service.interfaces.ClubService;
 import org.springframework.data.domain.Page;
@@ -24,47 +22,52 @@ public class ClubServiceImpl implements ClubService {
     private final PetitionRepo petitionRepo;
     private final AddressRepo addressRepo;
     private final ClientService clientService;
+    private final CoordinatorRepo coordinatorRepo;
 
-    public ClubServiceImpl(ClubRepo clubRepo, FileRepo fileRepo, PetitionRepo petitionRepo, AddressRepo addressRepo, ClientService clientService) {
+    public ClubServiceImpl(ClubRepo clubRepo, FileRepo fileRepo, PetitionRepo petitionRepo, AddressRepo addressRepo, ClientService clientService, CoordinatorRepo coordinatorRepo) {
         this.clubRepo = clubRepo;
         this.fileRepo = fileRepo;
         this.petitionRepo = petitionRepo;
         this.addressRepo = addressRepo;
         this.clientService = clientService;
+        this.coordinatorRepo = coordinatorRepo;
     }
 
     @Override
     public Club createClub(ClubWithAddressDto clubWithAddressDto, Client currentClient) {
-        ClubDto clubDto = clubWithAddressDto.getClub();
-        Club club = new Club();
-        club.setCif(clubDto.getCif());
-        club.setCreateDate(LocalDate.now());
-        club.setAccessCode(createAccessCode());
-        club.setEmail(clubDto.getEmail());
-        club.setOrganization(clubDto.getOrganization());
-        club.setWhoAreWe(clubDto.getWhoAreWe());
-        club.setName(clubDto.getName());
-
-        club.setActivitySheets(new HashSet<>());
-        club.setPetitions(new HashSet<>());
-
         Set<Client> clients = new HashSet<>();
         clients.add(currentClient);
+        if (clubRepo.findClubByMonitorsIn(clients) == null){
+            ClubDto clubDto = clubWithAddressDto.getClub();
+            Club club = new Club();
+            club.setCif(clubDto.getCif());
+            club.setCreateDate(LocalDate.now());
+            club.setAccessCode(createAccessCode());
+            club.setEmail(clubDto.getEmail());
+            club.setOrganization(clubDto.getOrganization());
+            club.setWhoAreWe(clubDto.getWhoAreWe());
+            club.setName(clubDto.getName());
 
-        club.setClients(clients);
+            club.setPetitions(new HashSet<>());
 
-        club.setAddress(createAddressByAddressDto(clubWithAddressDto.getAddress()));
+            club.setAddress(createAddressByAddressDto(clubWithAddressDto.getAddress()));
+            club.setMonitors(new HashSet<>());
 
-        clubRepo.save(club);
+            clubRepo.save(club);
 
-        currentClient.setClub(club);
+            currentClient.setClub(club);
 
-        clientService.save(currentClient);
+            clientService.save(currentClient);
 
-        Set<File> clubFiles = handleImages(clubDto.getLogo(), clubDto.getFrontPageFile(), club);
+            Set<File> clubFiles = handleImages(clubDto.getLogo(), clubDto.getFrontPageFile(), club);
+            club.setFiles(clubFiles);
 
-        club.setFiles(clubFiles);
-        return club;
+            Coordinator coordinator = new Coordinator(club, currentClient);
+            coordinatorRepo.save(coordinator);
+            return club;
+        }
+
+        throw new AlreadyInAClubException();
     }
 
     @Override
@@ -91,7 +94,7 @@ public class ClubServiceImpl implements ClubService {
     public String getClubNameByClient(Client currentClient) {
         Set<Client> clients = new HashSet<>();
         clients.add(currentClient);
-        Club club = clubRepo.findClubByClientsIn(clients);
+        Club club = clubRepo.findClubByMonitorsIn(clients);
         if (club != null){
             return club.getName();
         }
@@ -132,7 +135,7 @@ public class ClubServiceImpl implements ClubService {
         clubInFormatJson.put("whoAreWe", club.getWhoAreWe());
         clubInFormatJson.put("organization", club.getOrganization());
         clubInFormatJson.put("accessCode", club.getAccessCode());
-        clubInFormatJson.put("clients", clientService.getListOfClientsInJsonFormat(club.getClients()));
+        clubInFormatJson.put("clients", clientService.getListOfClientsInJsonFormat(club.getMonitors()));
         clubInFormatJson.put("files", filesWithBase64Content(club.getFiles()));
 
         return clubInFormatJson;

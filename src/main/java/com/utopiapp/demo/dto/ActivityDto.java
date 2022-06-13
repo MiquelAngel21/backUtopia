@@ -11,7 +11,6 @@ public class ActivityDto {
     private boolean isEvent;
     private String description;
     private LocalDateTime createdDate;
-    private Set<Guide> guides;
     private Client client;
     private Set<Tag> tags;
     private Set<Material> materials;
@@ -56,14 +55,6 @@ public class ActivityDto {
 
     public void setCreatedDate(LocalDateTime createdDate) {
         this.createdDate = createdDate;
-    }
-
-    public Set<Guide> getGuides() {
-        return guides;
-    }
-
-    public void setGuides(Set<Guide> guides) {
-        this.guides = guides;
     }
 
     public Client getClient() {

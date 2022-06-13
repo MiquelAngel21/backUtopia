@@ -71,9 +71,6 @@ public class ActivityController {
             UserMain userMain = (UserMain) authentication.getPrincipal();
             Client currentUser = userMain.toClient();
 
-        if (activityDto.isEvent() && (!currentUser.getRole().equals("DIRECTOR"))){
-            return new ResponseEntity<>(new Message("No tens permisos per crear events"), HttpStatus.CONFLICT);
-        }
         if (bindingResult.hasErrors()) {
             return new ResponseEntity<>(new Message("Algún camp és incompleto o es incorrecto"), HttpStatus.BAD_REQUEST);
         }

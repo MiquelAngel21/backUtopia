@@ -27,9 +27,6 @@ public class Activity {
     @Column(nullable = false)
     private LocalDateTime createdDate;
 
-    @OneToMany(mappedBy = "activity", fetch = FetchType.EAGER)
-    private Set<Guide> guides;
-
     @ManyToOne
     @JsonIgnore
     private Client client;
@@ -70,7 +67,6 @@ public class Activity {
         this.isEvent = isEvent;
         this.description = description;
         this.createdDate = createdDate;
-        this.guides = new HashSet<>();
         this.client = client;
         this.tags = tags;
         this.materials = materials;
@@ -83,7 +79,6 @@ public class Activity {
         this.isEvent = isEvent;
         this.description = description;
         this.createdDate = createdDate;
-        this.guides = new HashSet<>();
         this.client = client;
         this.hearts = new HashSet<>();
     }
@@ -138,14 +133,6 @@ public class Activity {
 
     public void setDescription(String description) {
         this.description = description;
-    }
-
-    public Set<Guide> getGuide() {
-        return guides;
-    }
-
-    public void setGuide(Set<Guide> guide) {
-        this.guides = guide;
     }
 
     public Client getClient() {
