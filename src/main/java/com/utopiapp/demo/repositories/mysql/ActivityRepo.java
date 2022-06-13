@@ -18,7 +18,7 @@ public interface ActivityRepo extends JpaRepository<Activity, Long> {
     Page<Activity> findAllByHearts_ClientAndNameLikeOrderByCreatedDateDesc(Client client, String name, Pageable pageable);
     Page<Activity> findAllByClientOrderByCreatedDateDesc(Client client, Pageable pageable);
     Page<Activity> findAllByClientAndNameLikeOrderByCreatedDateDesc(Client client, String name, Pageable pageable);
-    List<Activity> findAllByClientOrderByCreatedDateDesc(Long clientId);
+    List<Activity> findAllByClientOrderByCreatedDateDesc(Client client);
 
     @Query("SELECT a FROM Heart h, Activity a WHERE h.activity.id = a.id GROUP BY h.activity.id ORDER BY COUNT(h.activity.id) DESC, a.createdDate DESC")
     Page<Activity> findAllByMoreLikedActivities(Pageable pageable);
@@ -31,6 +31,6 @@ public interface ActivityRepo extends JpaRepository<Activity, Long> {
     Activity findActivityById(Long id);
     Activity findActivityByName(String name);
     Activity findActivityByClientAndId(Client currentUser, Long id);
-
+    List<Activity> findActivitiesByClient(Client client);
 
 }

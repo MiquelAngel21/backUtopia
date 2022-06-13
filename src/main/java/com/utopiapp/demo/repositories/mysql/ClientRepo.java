@@ -10,5 +10,5 @@ import java.util.Set;
 @Repository
 public interface ClientRepo extends JpaRepository<Client, Long> {
     Client findByEmail(String email);
-    Client findByActivitiesInAndId(Set<Activity> activities, Long Id);
+    Client findClientById(Long id);
 }

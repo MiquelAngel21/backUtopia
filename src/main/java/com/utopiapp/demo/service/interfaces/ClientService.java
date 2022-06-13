@@ -31,4 +31,6 @@ public interface ClientService {
    File getImageById(Long id);
 
    HttpHeaders chooseImageType(File file);
+
+   Client getClientById(Long clientId);
 }

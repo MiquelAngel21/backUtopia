@@ -88,7 +88,18 @@ public class ClubServiceImpl implements ClubService {
     }
 
     @Override
-    public Petition createNewPetition(Long clubId, DescriptionPetitionDto descriptionPetitionDto, Client currentClient) {
+    public String getClubNameByClient(Client currentClient) {
+        Set<Client> clients = new HashSet<>();
+        clients.add(currentClient);
+        Club club = clubRepo.findClubByClientsIn(clients);
+        if (club != null){
+            return club.getName();
+        }
+        return null;
+    }
+
+    @Override
+    public void createNewPetition(Long clubId, DescriptionPetitionDto descriptionPetitionDto, Client currentClient) {
         Petition petition = new Petition();
 
         petition.setStatus(Status.PENDING);
@@ -96,7 +107,7 @@ public class ClubServiceImpl implements ClubService {
         petition.setClub(clubRepo.findClubById(clubId));
         petition.setClient(currentClient);
 
-        return petitionRepo.save(petition);
+        petitionRepo.save(petition);
     }
 
     private List<Map<String, Object>> convertClubListIntoJson(List<Club> clubs) {

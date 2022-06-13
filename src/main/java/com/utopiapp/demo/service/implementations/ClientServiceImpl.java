@@ -157,7 +157,7 @@ public class ClientServiceImpl implements ClientService {
                 throw new EmptyFieldsException();
             }
             if (!passwordEncoder.encode(setingsDataDto.getNewPassword()).equals(setingsDataDto.getRepeatPassword())
-                    && (passwordEncoder.encode(setingsDataDto.getNewPassword()).equals(currentClient.getPassword()))){
+                    || (passwordEncoder.matches(setingsDataDto.getNewPassword(), currentClient.getPassword()))){
                 throw new IncorrectPasswordException();
             }
         }
@@ -169,7 +169,7 @@ public class ClientServiceImpl implements ClientService {
        } else {
            currentClient.setPassword(passwordEncoder.encode(setingsDataDto.getNewPassword()));
        }
-       clientRepo.save(currentClient);
+        clientRepo.save(currentClient);
     }
 
     private Object heartsToJsonFormat(Set<Heart> hearts) {
@@ -203,5 +203,10 @@ public class ClientServiceImpl implements ClientService {
             httpHeaders.setContentType(MediaType.APPLICATION_OCTET_STREAM);
         }
         return httpHeaders;
+    }
+
+    @Override
+    public Client getClientById(Long clientId) {
+        return clientRepo.findClientById(clientId);
     }
 }

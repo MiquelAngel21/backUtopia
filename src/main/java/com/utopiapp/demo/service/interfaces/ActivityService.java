@@ -38,4 +38,8 @@ public interface ActivityService {
     List<Tag> getAllTags();
 
     Map<String, Object> clientWithNewActivity(Client client, Map<String, Object> activityWithNewLike);
+
+    int getNumberOfLikesByClient(Client currentClient);
+
+    int getNumberOfActivitiesByClient(Client currentClient);
 }

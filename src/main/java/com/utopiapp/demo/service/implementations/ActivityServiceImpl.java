@@ -40,7 +40,7 @@ public class ActivityServiceImpl implements ActivityService {
 
     @Override
     public List<Map<String, Object>> getActivitiesByUserAndMostRecentDate(Long clientId) {
-        List<Activity> activities = activityRepoMysql.findAllByClientOrderByCreatedDateDesc(clientId);
+        List<Activity> activities = activityRepoMysql.findAllByClientOrderByCreatedDateDesc(clientService.getClientById(clientId));
         return convertActivityListIntoJsonList(activities);
     }
 
@@ -58,6 +58,7 @@ public class ActivityServiceImpl implements ActivityService {
         }
 
         activity = activityRepoMysql.save(activity);
+
 
         return activity;
     }
@@ -165,6 +166,7 @@ public class ActivityServiceImpl implements ActivityService {
         Set<Heart> newClientLikes = currentClient.getHearts();
         newClientLikes.add(newLike);
         currentClient.setHearts(newClientLikes);
+        activity.setClient(currentClient);
 
         activityRepoMysql.save(activity);
         clientService.save(currentClient);
@@ -321,6 +323,18 @@ public class ActivityServiceImpl implements ActivityService {
         activityWithNewUser.put("client", clientService.getClientInJsonFormat(client));
         activityWithNewUser.put("activity", activityWithNewLike);
         return activityWithNewUser;
+    }
+
+    @Override
+    public int getNumberOfLikesByClient(Client client) {
+        int countLikes = heartRepoMysql.findHeartsByClient(client).size();
+        return countLikes;
+    }
+
+    @Override
+    public int getNumberOfActivitiesByClient(Client client){
+        int countActivities = activityRepoMysql.findActivitiesByClient(client).size();
+        return countActivities;
     }
 
     private List<Map<String, Object>> heartsToJson(Set<Heart> hearts) {
