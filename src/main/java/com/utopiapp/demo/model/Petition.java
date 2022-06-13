@@ -12,15 +12,12 @@ public class Petition {
     @GeneratedValue(generator="gen")
     private Long id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "text")
     private String description;
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private Status status;
-
-    @Column(nullable = false)
-    private String title;
 
     @ManyToOne
     private Club club;
@@ -55,11 +52,27 @@ public class Petition {
         this.status = status;
     }
 
-    public String getTitle() {
-        return title;
+    public Club getClub() {
+        return club;
     }
 
-    public void setTitle(String title) {
-        this.title = title;
+    public void setClub(Club club) {
+        this.club = club;
+    }
+
+    public Client getClient() {
+        return client;
+    }
+
+    public void setClient(Client client) {
+        this.client = client;
+    }
+
+    public Set<ActivitySheet> getActivitySheets() {
+        return activitySheets;
+    }
+
+    public void setActivitySheets(Set<ActivitySheet> activitySheets) {
+        this.activitySheets = activitySheets;
     }
 }

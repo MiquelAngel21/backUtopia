@@ -1,14 +1,11 @@
 package com.utopiapp.demo.service.implementations;
 
-import com.utopiapp.demo.dto.AddressDto;
-import com.utopiapp.demo.dto.ClubDto;
-import com.utopiapp.demo.dto.ClubWithAddressDto;
-import com.utopiapp.demo.dto.FileDto;
+import com.utopiapp.demo.dto.*;
 import com.utopiapp.demo.model.*;
 import com.utopiapp.demo.repositories.mysql.AddressRepo;
 import com.utopiapp.demo.repositories.mysql.ClubRepo;
 import com.utopiapp.demo.repositories.mysql.FileRepo;
-import com.utopiapp.demo.service.interfaces.AddressService;
+import com.utopiapp.demo.repositories.mysql.PetitionRepo;
 import com.utopiapp.demo.service.interfaces.ClientService;
 import com.utopiapp.demo.service.interfaces.ClubService;
 import org.springframework.data.domain.Page;
@@ -24,12 +21,14 @@ public class ClubServiceImpl implements ClubService {
 
     private final ClubRepo clubRepo;
     private final FileRepo fileRepo;
+    private final PetitionRepo petitionRepo;
     private final AddressRepo addressRepo;
     private final ClientService clientService;
 
-    public ClubServiceImpl(ClubRepo clubRepo, FileRepo fileRepo, AddressRepo addressRepo, ClientService clientService) {
+    public ClubServiceImpl(ClubRepo clubRepo, FileRepo fileRepo, PetitionRepo petitionRepo, AddressRepo addressRepo, ClientService clientService) {
         this.clubRepo = clubRepo;
         this.fileRepo = fileRepo;
+        this.petitionRepo = petitionRepo;
         this.addressRepo = addressRepo;
         this.clientService = clientService;
     }
@@ -69,11 +68,15 @@ public class ClubServiceImpl implements ClubService {
     }
 
     @Override
-    public Map<String, Object> getPaginatedClubs(int start, int length) {
+    public Map<String, Object> getPaginatedClubs(String name, int start, int length) {
         Pageable paging = PageRequest.of(start / length, length);
         Page<Club> pageResult;
 
-        pageResult = clubRepo.findAll(paging);
+        if (name != null){
+            pageResult = clubRepo.findAllByNameContainingOrderByName(name,paging);
+        } else {
+            pageResult = clubRepo.findAll(paging);
+        }
 
         long total = pageResult.getTotalElements();
         List<Map<String, Object>> data = convertClubListIntoJson(pageResult.getContent());
@@ -82,6 +85,18 @@ public class ClubServiceImpl implements ClubService {
         json.put("data", data);
         json.put("recordsTotal", total);
         return json;
+    }
+
+    @Override
+    public Petition createNewPetition(Long clubId, DescriptionPetitionDto descriptionPetitionDto, Client currentClient) {
+        Petition petition = new Petition();
+
+        petition.setStatus(Status.PENDING);
+        petition.setDescription(descriptionPetitionDto.getDescription());
+        petition.setClub(clubRepo.findClubById(clubId));
+        petition.setClient(currentClient);
+
+        return petitionRepo.save(petition);
     }
 
     private List<Map<String, Object>> convertClubListIntoJson(List<Club> clubs) {
@@ -107,14 +122,28 @@ public class ClubServiceImpl implements ClubService {
         clubInFormatJson.put("organization", club.getOrganization());
         clubInFormatJson.put("accessCode", club.getAccessCode());
         clubInFormatJson.put("clients", clientService.getListOfClientsInJsonFormat(club.getClients()));
-//        clubInFormatJson.put("files", arrayOfBase64Images(club.getFiles()));
+        clubInFormatJson.put("files", filesWithBase64Content(club.getFiles()));
 
         return clubInFormatJson;
     }
 
-    /*private Object arrayOfBase64Images(Set<File> files) {
+    private List<Map<String, Object>> filesWithBase64Content(Set<File> files) {
+        List<Map<String, Object>> allJsonFormatFiles = new ArrayList<>();
 
-    }*/
+        for (File file : files){
+            Map<String, Object> jsonFormatFile = new HashMap<>();
+
+            jsonFormatFile.put("id", file.getId());
+            jsonFormatFile.put("name", file.getName());
+            jsonFormatFile.put("mediaType", file.getMediaType());
+            jsonFormatFile.put("contentBase64", file.getContent());
+
+            allJsonFormatFiles.add(jsonFormatFile);
+        }
+
+        return allJsonFormatFiles;
+    }
+
 
     private Address createAddressByAddressDto(AddressDto addressDto) {
         Address address = new Address();

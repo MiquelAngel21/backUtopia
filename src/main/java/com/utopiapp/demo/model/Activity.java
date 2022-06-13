@@ -21,7 +21,7 @@ public class Activity {
     @Column(nullable = false)
     private boolean isEvent;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "longtext")
     private String description;
 
     @Column(nullable = false)

@@ -10,4 +10,6 @@ import org.springframework.stereotype.Repository;
 public interface ClubRepo extends JpaRepository<Club, Long> {
     boolean existsByAccessCode(String accessCode);
     Page<Club> findAll(Pageable pageable);
+    Club findClubById(Long id);
+    Page<Club> findAllByNameContainingOrderByName(String name, Pageable paging);
 }

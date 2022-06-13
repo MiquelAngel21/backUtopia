@@ -169,7 +169,7 @@ public class ClientServiceImpl implements ClientService {
        } else {
            currentClient.setPassword(passwordEncoder.encode(setingsDataDto.getNewPassword()));
        }
-       clientRepoMysqlImpl.save(currentClient);
+       clientRepo.save(currentClient);
     }
 
     private Object heartsToJsonFormat(Set<Heart> hearts) {

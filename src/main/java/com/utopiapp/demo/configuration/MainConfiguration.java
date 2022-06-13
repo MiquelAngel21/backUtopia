@@ -75,7 +75,7 @@ public class MainConfiguration extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http.cors().and().csrf().disable()
                 .authorizeRequests()
-                .antMatchers(HttpMethod.GET, "/login", "/register", "/manage-like/*").permitAll()
+                .antMatchers(HttpMethod.GET, "/login", "/register", "/").permitAll()
                 .antMatchers(HttpMethod.POST, "/login", "/register", "/new-club").permitAll()
                 .anyRequest().authenticated()
                 .and()

@@ -36,4 +36,6 @@ public interface ActivityService {
     boolean isOwner(Client currentClient, Long activityId);
 
     List<Tag> getAllTags();
+
+    Map<String, Object> clientWithNewActivity(Client client, Map<String, Object> activityWithNewLike);
 }

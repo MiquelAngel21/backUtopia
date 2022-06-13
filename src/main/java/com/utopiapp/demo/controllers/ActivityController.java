@@ -69,7 +69,7 @@ public class ActivityController {
         try {
             Activity activity = new Activity();
             UserMain userMain = (UserMain) authentication.getPrincipal();
-            Client currentUser = clientService.getClientByEmail(userMain.getEmail());
+            Client currentUser = userMain.toClient();
 
         if (activityDto.isEvent() && (!currentUser.getRole().equals("DIRECTOR"))){
             return new ResponseEntity<>(new Message("No tens permisos per crear events"), HttpStatus.CONFLICT);
@@ -170,8 +170,11 @@ public class ActivityController {
             Authentication authentication
     ) {
         UserMain userMain = (UserMain) authentication.getPrincipal();
-        return activityService.manageLike(id, userMain);
+        Map<String, Object> activityWithNewLike = activityService.manageLike(id, userMain);
+        Map<String, Object> hey = activityService.clientWithNewActivity(userMain.toClient(), activityWithNewLike);
+        return hey;
     }
+
 
     @GetMapping(value = "/filter-activities/{filterText}", produces = {"application/json"})
     @ResponseBody

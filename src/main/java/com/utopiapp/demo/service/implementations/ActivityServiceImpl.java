@@ -59,7 +59,6 @@ public class ActivityServiceImpl implements ActivityService {
 
         activity = activityRepoMysql.save(activity);
 
-
         return activity;
     }
 
@@ -166,7 +165,6 @@ public class ActivityServiceImpl implements ActivityService {
         Set<Heart> newClientLikes = currentClient.getHearts();
         newClientLikes.add(newLike);
         currentClient.setHearts(newClientLikes);
-        activity.setClient(currentClient);
 
         activityRepoMysql.save(activity);
         clientService.save(currentClient);
@@ -315,6 +313,14 @@ public class ActivityServiceImpl implements ActivityService {
     @Override
     public List<Tag> getAllTags() {
         return tagRepoMysql.findAll();
+    }
+
+    @Override
+    public Map<String, Object> clientWithNewActivity(Client client, Map<String, Object> activityWithNewLike) {
+        Map<String, Object> activityWithNewUser = new HashMap<>();
+        activityWithNewUser.put("client", clientService.getClientInJsonFormat(client));
+        activityWithNewUser.put("activity", activityWithNewLike);
+        return activityWithNewUser;
     }
 
     private List<Map<String, Object>> heartsToJson(Set<Heart> hearts) {
