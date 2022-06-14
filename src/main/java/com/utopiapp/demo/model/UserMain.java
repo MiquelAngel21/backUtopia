@@ -11,6 +11,7 @@ public class UserMain implements UserDetails {
     private Long id;
     private String name;
     private String username;
+    private String description;
     private String lastname;
     private String email;
     private String password;
@@ -21,10 +22,11 @@ public class UserMain implements UserDetails {
     private Set<Activity> activities;
     private Set<Heart> hearts;
 
-    public UserMain(Long id, String name, String username, String lastname, String email, String password, LocalDateTime createdDate, Club club, Set<Petition> petitions, Set<Activity> activities, Set<Heart> hearts) {
+    public UserMain(Long id, String name, String username, String lastname, String email, String password, LocalDateTime createdDate, Club club, Set<Petition> petitions, Set<Activity> activities, Set<Heart> hearts, String description) {
         this.id = id;
         this.name = name;
         this.username = username;
+        this.description = description;
         this.lastname = lastname;
         this.email = email;
         this.password = password;
@@ -36,7 +38,7 @@ public class UserMain implements UserDetails {
     }
 
     public Client toClient(){
-        return new Client(this.id, this.name, this.username, this.lastname, this.email, this.password, this.createdDate, this.club, this.petitions, this.activities, this.hearts);
+        return new Client(this.id, this.name, this.username, this.lastname, this.email, this.password, this.createdDate, this.club, this.petitions, this.activities, this.hearts, this.description);
     }
 
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -103,6 +105,14 @@ public class UserMain implements UserDetails {
 
     public String getEmail() {
         return email;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     public void setEmail(String email) {

@@ -152,6 +152,7 @@ public class ClientServiceImpl implements ClientService {
            currentClient.setName(setingsDataDto.getName());
            currentClient.setEmail(setingsDataDto.getEmail());
            currentClient.setLastname(setingsDataDto.getLastname());
+           currentClient.setDescription(setingsDataDto.getDescription());
        } else {
            currentClient.setPassword(passwordEncoder.encode(setingsDataDto.getNewPassword()));
        }
