@@ -46,6 +46,11 @@ public class ClientServiceImpl implements ClientService {
     }
 
     @Override
+    public Client getClientById(Long id) {
+        return clientRepo.getById(id);
+    }
+
+    @Override
     public Client save(Client newClient) {
         return clientRepo.save(newClient);
     }

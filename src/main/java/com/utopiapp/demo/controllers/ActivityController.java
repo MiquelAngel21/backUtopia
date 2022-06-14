@@ -8,6 +8,10 @@ import com.utopiapp.demo.model.Tag;
 import com.utopiapp.demo.model.UserMain;
 import com.utopiapp.demo.service.interfaces.ActivityService;
 import com.utopiapp.demo.service.interfaces.ClientService;
+import com.utopiapp.demo.service.interfaces.ClubService;
+import org.springframework.beans.factory.annotation.Autowired;
+import com.utopiapp.demo.service.interfaces.ClubService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -20,13 +24,14 @@ import java.util.Map;
 @RestController
 public class ActivityController {
 
-    private final ActivityService activityService;
-    private final ClientService clientService;
+    @Autowired
+    ActivityService activityService;
 
-    public ActivityController(ActivityService activityService, ClientService clientService) {
-        this.activityService = activityService;
-        this.clientService = clientService;
-    }
+    @Autowired
+    ClientService clientService;
+
+    @Autowired
+    ClubService clubService;
 
     @GetMapping(value = "/activities", produces = {"application/json"})
     @ResponseBody
@@ -63,23 +68,11 @@ public class ActivityController {
     @ResponseBody
     public ResponseEntity<?> createActivity(
             @RequestBody ActivityDto activityDto,
-            Authentication authentication,
-            BindingResult bindingResult
+            Authentication authentication
     ) {
         try {
             Activity activity = new Activity();
             UserMain userMain = (UserMain) authentication.getPrincipal();
-            Client currentUser = userMain.toClient();
-
-        if (bindingResult.hasErrors()) {
-            return new ResponseEntity<>(new Message("Algún camp és incompleto o es incorrecto"), HttpStatus.BAD_REQUEST);
-        }
-        if (activityDto.getFiles().size() > 3) {
-            return new ResponseEntity<>(new Message("Només pots adjuntar 3 fitxers com a màxim"), HttpStatus.BAD_REQUEST);
-        }
-        if (activityService.getActivityByName(activityDto.getName()) != null) {
-            return new ResponseEntity<>(new Message("Aquest nom d'activitat ja està en ús"), HttpStatus.BAD_REQUEST);
-        }
             return new ResponseEntity<>(activityService.createNewActivity(activity, activityDto, userMain, false), HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(new Message("Error creant l'activitat"), HttpStatus.CONFLICT);
@@ -102,6 +95,16 @@ public class ActivityController {
         boolean isOwner = activityService.isOwner(userMain.toClient(), activity.getId());
         viewActivityDataJson.put("isOwner", isOwner);
 
+        Client activityCreator = clientService.getClientById(activity.getClient().getId());
+        viewActivityDataJson.put("ownerName", activityCreator.getName() + " " + activityCreator.getLastname());
+        viewActivityDataJson.put("ownerDescription", activityCreator.getDescription());
+        viewActivityDataJson.put("ownerEmail", activityCreator.getEmail());
+        String clubName = clubService.getClubNameByClient(activityCreator);
+        viewActivityDataJson.put("ownerClubName", clubName);
+        int countLikes = activityService.getNumberOfLikesByClient(activityCreator);
+        viewActivityDataJson.put("ownerTotalLikes", countLikes);
+        int countActivities = activityService.getNumberOfActivitiesByClient(activityCreator);
+        viewActivityDataJson.put("ownerTotalActivities", countActivities);
         return viewActivityDataJson;
     }
 
@@ -110,22 +113,11 @@ public class ActivityController {
     public ResponseEntity<?> updateActivity(
             @RequestBody ActivityDto activityDto,
             @PathVariable Long id,
-            Authentication authentication,
-            BindingResult bindingResult
+            Authentication authentication
     ) {
         try {
             Activity activity = new Activity();
             UserMain userMain = (UserMain) authentication.getPrincipal();
-            Client currentUser = clientService.getClientByEmail(userMain.getEmail());
-            if (!activityService.isOwner(currentUser, activityDto.getId())) {
-                return new ResponseEntity<>(new Message("No tens permisos per realitzar aquesta acció"), HttpStatus.UNAUTHORIZED);
-            }
-            if (bindingResult.hasErrors()) {
-                return new ResponseEntity<>(new Message("Algún camp és incompleto o es incorrecto"), HttpStatus.BAD_REQUEST);
-            }
-            if (activityService.getActivityByName(activityDto.getName()) != null) {
-                return new ResponseEntity<>(new Message("Aquest nom d'activitat ja està en ús"), HttpStatus.BAD_REQUEST);
-            }
             activityService.updateAnExistingActivity(id, activity, activityDto, userMain);
             return new ResponseEntity<>("Activitat editada correctament!", HttpStatus.OK);
         } catch (Exception e) {
@@ -136,28 +128,12 @@ public class ActivityController {
     @DeleteMapping(value = "/activities/{id}", produces = {"application/json"})
     @ResponseBody
     public ResponseEntity<?> deleteActivity(
-            @PathVariable Long id
+            @PathVariable Long id,
+            Authentication authentication
     ) {
-        activityService.deleteActivity(id);
-        return new ResponseEntity<>(new Message("Activity deleted successfully"), HttpStatus.NO_CONTENT);
-    }
-
-    @DeleteMapping
-            (value = "new-activity", produces = {"application/json"})
-    @ResponseBody
-    public ResponseEntity<?> deleteActivity(@RequestBody ActivityDto activityDto, Authentication authentication) {
-        try {
-            UserMain userMain = (UserMain) authentication.getPrincipal();
-            Client currentUser = clientService.getClientByEmail(userMain.getEmail());
-            if (!activityService.isOwner(currentUser, activityDto.getId())) {
-                return new ResponseEntity<>(new Message("No tens permisos per realitzar aquesta acció"), HttpStatus.UNAUTHORIZED);
-            }
-            activityService.deleteActivity(activityDto.getId());
-            return new ResponseEntity<>(new Message("Activitat esborrada amb èxit!"), HttpStatus.OK);
-        } catch (Exception e) {
-            return new ResponseEntity<>(new Message("Error esborrant l'activitat"), HttpStatus.BAD_REQUEST);
-        }
-
+        UserMain userMain = (UserMain) authentication.getPrincipal();
+        activityService.deleteActivity(id, userMain);
+        return new ResponseEntity<>(new Message("Activitat esborrada amb èxit!"), HttpStatus.NO_CONTENT);
     }
 
     @GetMapping(value = "/manage-like/{id}", produces = {"application/json"})
