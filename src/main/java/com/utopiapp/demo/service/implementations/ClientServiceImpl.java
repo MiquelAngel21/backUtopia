@@ -6,6 +6,7 @@ import com.utopiapp.demo.dto.SetingsDataDto;
 import com.utopiapp.demo.exceptions.EmptyFieldsException;
 import com.utopiapp.demo.exceptions.IncorrectPasswordException;
 import com.utopiapp.demo.model.Client;
+import com.utopiapp.demo.model.Club;
 import com.utopiapp.demo.model.File;
 import com.utopiapp.demo.model.Heart;
 import com.utopiapp.demo.repositories.mysql.ClientRepo;
@@ -193,5 +194,10 @@ public class ClientServiceImpl implements ClientService {
     @Override
     public Client getClientById(Long clientId) {
         return clientRepo.findClientById(clientId);
+    }
+
+    @Override
+    public List<Client> getAllClientsByClub(Club club) {
+        return clientRepo.findAllByClub(club);
     }
 }

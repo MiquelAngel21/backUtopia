@@ -41,7 +41,7 @@ public class Club {
     private Set<Petition> petitions;
 
     @OneToMany(mappedBy = "club")
-    private Set<Client> monitors;
+    private Set<Client> volunteers;
 
     @OneToMany(mappedBy = "club")
     private Set<File> files;
@@ -137,12 +137,12 @@ public class Club {
         this.files = files;
     }
 
-    public Set<Client> getMonitors() {
-        return monitors;
+    public Set<Client> getVolunteers() {
+        return volunteers;
     }
 
-    public void setMonitors(Set<Client> monitors) {
-        this.monitors = monitors;
+    public void setVolunteers(Set<Client> monitors) {
+        this.volunteers = monitors;
     }
 
     public Set<Coordinator> getCoordinators() {

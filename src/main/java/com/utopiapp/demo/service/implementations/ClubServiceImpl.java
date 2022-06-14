@@ -37,7 +37,7 @@ public class ClubServiceImpl implements ClubService {
     public Club createClub(ClubWithAddressDto clubWithAddressDto, Client currentClient) {
         Set<Client> clients = new HashSet<>();
         clients.add(currentClient);
-        if (clubRepo.findClubByMonitorsIn(clients) == null){
+        if (clubRepo.findClubByVolunteersIn(clients) == null){
             ClubDto clubDto = clubWithAddressDto.getClub();
             Club club = new Club();
             club.setCif(clubDto.getCif());
@@ -51,7 +51,7 @@ public class ClubServiceImpl implements ClubService {
             club.setPetitions(new HashSet<>());
 
             club.setAddress(createAddressByAddressDto(clubWithAddressDto.getAddress()));
-            club.setMonitors(new HashSet<>());
+            club.setVolunteers(new HashSet<>());
 
             clubRepo.save(club);
 
@@ -94,11 +94,44 @@ public class ClubServiceImpl implements ClubService {
     public String getClubNameByClient(Client currentClient) {
         Set<Client> clients = new HashSet<>();
         clients.add(currentClient);
-        Club club = clubRepo.findClubByMonitorsIn(clients);
+        Club club = clubRepo.findClubByVolunteersIn(clients);
         if (club != null){
             return club.getName();
         }
         return null;
+    }
+
+    @Override
+    public Map<String, Object> getClubById(Long id) {
+        return convertClubToMap(clubRepo.findClubById(id));
+    }
+
+    @Override
+    public List<Map<String, Object>> getCoordinatorsByClub(Long clubId) {
+        List<Coordinator> coordinators = coordinatorRepo.findAllByClub(clubRepo.findClubById(clubId));
+        List<Map<String, Object>> coordinatorHashMapList = new ArrayList<>();
+
+        for (Coordinator coordinator : coordinators){
+            coordinatorHashMapList.add(coordinatorToMap(coordinator));
+        }
+
+        return coordinatorHashMapList;
+    }
+
+    @Override
+    public List<Map<String, Object>> getMonitorsByClub(Long clubId) {
+        Club club = clubRepo.findClubById(clubId);
+        List<Client> monitors = clientService.getAllClientsByClub(club);
+
+        return clientService.getListOfClientsInJsonFormat(monitors);
+    }
+
+    private Map<String, Object> coordinatorToMap(Coordinator coordinator) {
+        Map<String, Object> coordinatorHashMap = new HashMap<>();
+        coordinatorHashMap.put("id", coordinator.getId());
+        coordinatorHashMap.put("club", convertClubToMap(coordinator.getClub()));
+        coordinatorHashMap.put("person", clientService.getClientInJsonFormat(coordinator.getPerson()));
+        return coordinatorHashMap;
     }
 
     @Override
@@ -135,7 +168,7 @@ public class ClubServiceImpl implements ClubService {
         clubInFormatJson.put("whoAreWe", club.getWhoAreWe());
         clubInFormatJson.put("organization", club.getOrganization());
         clubInFormatJson.put("accessCode", club.getAccessCode());
-        clubInFormatJson.put("clients", clientService.getListOfClientsInJsonFormat(club.getMonitors()));
+        clubInFormatJson.put("volunteers", clientService.getListOfClientsInJsonFormat(club.getVolunteers()));
         clubInFormatJson.put("files", filesWithBase64Content(club.getFiles()));
 
         return clubInFormatJson;

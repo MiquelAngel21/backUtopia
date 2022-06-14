@@ -15,5 +15,5 @@ public interface ClubRepo extends JpaRepository<Club, Long> {
     Page<Club> findAll(Pageable pageable);
     Club findClubById(Long id);
     Page<Club> findAllByNameContainingOrderByName(String name, Pageable paging);
-    Club findClubByMonitorsIn(Set<Client> clients);
+    Club findClubByVolunteersIn(Set<Client> clients);
 }

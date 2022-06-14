@@ -4,6 +4,7 @@ import com.utopiapp.demo.dto.LoginDto;
 import com.utopiapp.demo.dto.RegisterDto;
 import com.utopiapp.demo.dto.SetingsDataDto;
 import com.utopiapp.demo.model.Client;
+import com.utopiapp.demo.model.Club;
 import com.utopiapp.demo.model.File;
 import org.springframework.http.HttpHeaders;
 
@@ -20,14 +21,10 @@ public interface ClientService {
    void verifyLoginFormInformation(LoginDto loginDTO);
    Map<String, Object> getUserAttributes();
    void updateDataClient(SetingsDataDto setingsDataDto, Client currentClient);
-
    List<Map<String, Object>> getListOfClientsInJsonFormat(Collection<Client> clients);
-
    Map<String, Object> getClientInJsonFormat(Client client);
-
    File getImageById(Long id);
-
    HttpHeaders chooseImageType(File file);
-
    Client getClientById(Long clientId);
+   List<Client> getAllClientsByClub(Club club);
 }

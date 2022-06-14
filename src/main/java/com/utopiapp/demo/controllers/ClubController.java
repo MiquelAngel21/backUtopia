@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -61,5 +62,29 @@ public class ClubController {
             @RequestParam int length
     ){
         return clubService.getPaginatedClubs(name, start, length);
+    }
+
+    @GetMapping(value = "/club/{id}", produces = {"application/json"})
+    @ResponseBody
+    public Map<String, Object> clubDetails(
+            @PathVariable Long id
+    ){
+        return clubService.getClubById(id);
+    }
+
+    @GetMapping(value = "/club/coordinators/{clubId}", produces = {"application/json"})
+    @ResponseBody
+    public List<Map<String, Object>> coordinatorsOfThisClub(
+            @PathVariable Long clubId
+    ){
+        return clubService.getCoordinatorsByClub(clubId);
+    }
+
+    @GetMapping(value = "/club/monitors/{clubId}", produces = {"application/json"})
+    @ResponseBody
+    public List<Map<String, Object>> monitorsOfThisClub(
+            @PathVariable Long clubId
+    ){
+        return clubService.getMonitorsByClub(clubId);
     }
 }
