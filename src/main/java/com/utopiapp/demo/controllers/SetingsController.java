@@ -39,7 +39,7 @@ public class SetingsController {
         String clubName = clubService.getClubNameByClient(currentClient);
         int countLikes = activityService.getNumberOfLikesByClient(currentClient);
         int countActivities = activityService.getNumberOfActivitiesByClient(currentClient);
-        return new SetingsDataDto(currentClient.getName(), currentClient.getLastname(), currentClient.getEmail(), currentClient.getUsername(), clubName, countLikes, countActivities);
+        return new SetingsDataDto(currentClient.getName(), currentClient.getLastname(), currentClient.getEmail(), currentClient.getUsername(), clubName, countLikes, countActivities, currentClient.getDescription());
     }
 
     @PutMapping

@@ -15,7 +15,7 @@ public class SetingsDataDto {
     private String confirmPassword2;
     private String updatingPassword;
 
-    public SetingsDataDto(String name, String lastname, String email, String username, String clubName, int countLikes, int countActivities) {
+    public SetingsDataDto(String name, String lastname, String email, String username, String clubName, int countLikes, int countActivities, String description) {
         this.name = name;
         this.lastname = lastname;
         this.email = email;
@@ -23,6 +23,7 @@ public class SetingsDataDto {
         this.clubName = clubName;
         this.countLikes = countLikes;
         this.countActivities = countActivities;
+        this.description = description;
     }
 
     public String getUsername() {

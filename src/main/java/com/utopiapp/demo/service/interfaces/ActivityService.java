@@ -19,7 +19,7 @@ public interface ActivityService {
 
     void updateAnExistingActivity(Long id, Activity activity, ActivityDto activityDto, UserMain userMain);
 
-    void deleteActivity(Long id);
+    void deleteActivity(Long id, UserMain user);
 
     Map<String, Object> getOneActivityById(Long id);
 

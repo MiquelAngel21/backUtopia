@@ -13,6 +13,7 @@ import java.util.Map;
 
 public interface ClientService {
    Client getClientByEmail(String email);
+   Client getClientById(Long id);
    Client save(Client newClient);
    Client addClient(RegisterDto registerDTO);
    void verifyRegisterFormInformation(RegisterDto registerDto);

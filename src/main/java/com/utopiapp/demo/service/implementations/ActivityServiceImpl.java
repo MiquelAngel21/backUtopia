@@ -2,6 +2,9 @@ package com.utopiapp.demo.service.implementations;
 
 import com.utopiapp.demo.dto.ActivityDto;
 import com.utopiapp.demo.dto.FileDto;
+import com.utopiapp.demo.exceptions.EmptyFieldsException;
+import com.utopiapp.demo.exceptions.RareCharacterException;
+import com.utopiapp.demo.exceptions.UnauthorizedException;
 import com.utopiapp.demo.model.*;
 import com.utopiapp.demo.repositories.mysql.*;
 import com.utopiapp.demo.service.interfaces.ActivityService;
@@ -46,8 +49,11 @@ public class ActivityServiceImpl implements ActivityService {
 
     @Override
     public Activity createNewActivity(Activity activity, ActivityDto activityDto, UserMain userMain, boolean isUpdate) {
+        if ((activityDto.getName().isEmpty() || activityDto.getDescription().isEmpty()) || activityDto.getTags().isEmpty()){
+            throw new EmptyFieldsException();
+        }
         activity.setName(activityDto.getName());
-        activity.setEvent(activityDto.isEvent());
+        activity.setEvent(activityDto.isEvent()); //maybe no se implementa por ahora
         activity.setDescription(activityDto.getDescription());
         activity.setCreatedDate(LocalDateTime.now());
         activity.setClient(userMain.toClient());
@@ -56,10 +62,7 @@ public class ActivityServiceImpl implements ActivityService {
         if (!isUpdate) {
             addFilesToActivity(activity, activityDto);
         }
-
         activity = activityRepoMysql.save(activity);
-
-
         return activity;
     }
 
@@ -84,7 +87,7 @@ public class ActivityServiceImpl implements ActivityService {
     public void noRareCharactersInText(String text) {
         String newText = text.replaceAll("['*\\-\"\\\\/\\[\\]?¿!¡<>=]*", "");
         if (!newText.equals(text)) {
-            throw new RuntimeException("No rare characters");
+            throw new RareCharacterException();
         }
     }
 
@@ -114,12 +117,18 @@ public class ActivityServiceImpl implements ActivityService {
 
     @Override
     public void updateAnExistingActivity(Long id, Activity activity, ActivityDto activityDto, UserMain userMain) {
+        if ((activityDto.getName().isEmpty() || activityDto.getDescription().isEmpty()) || activityDto.getTags().isEmpty()){
+            throw new EmptyFieldsException();
+        }
         activity.setId(id);
-        Activity updatedActivity = createNewActivity(activity, activityDto, userMain, true);
+        createNewActivity(activity, activityDto, userMain, true);
     }
 
     @Override
-    public void deleteActivity(Long id) {
+    public void deleteActivity(Long id, UserMain user) {
+        if(!isOwner(user.toClient(), id)){
+            throw new UnauthorizedException();
+        }
         activityRepoMysql.delete(activityRepoMysql.getById(id));
     }
 
