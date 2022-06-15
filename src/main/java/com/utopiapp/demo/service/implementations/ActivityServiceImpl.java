@@ -129,7 +129,10 @@ public class ActivityServiceImpl implements ActivityService {
         if(!isOwner(user.toClient(), id)){
             throw new UnauthorizedException();
         }
-        activityRepoMysql.delete(activityRepoMysql.getById(id));
+        Activity activityToDelete = activityRepoMysql.getById(id);
+        List<Heart> heartsOfActivity = heartRepoMysql.findHeartsByActivity_Id(id);
+        heartRepoMysql.deleteAll(heartsOfActivity);
+        activityRepoMysql.delete(activityToDelete);
     }
 
     @Override

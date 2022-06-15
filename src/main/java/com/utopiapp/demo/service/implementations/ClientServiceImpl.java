@@ -141,13 +141,13 @@ public class ClientServiceImpl implements ClientService {
                 throw new EmptyFieldsException();
             }
         } else {
-            if (!currentClient.getPassword().equals(passwordEncoder.encode(setingsDataDto.getConfirmPassword2()))){
+            if (!passwordEncoder.matches(setingsDataDto.getConfirmPassword2(), currentClient.getPassword())){
                 throw new IncorrectPasswordException();
             }
             if (setingsDataDto.getNewPassword().equals("") || setingsDataDto.getRepeatPassword().equals("")){
                 throw new EmptyFieldsException();
             }
-            if (!passwordEncoder.encode(setingsDataDto.getNewPassword()).equals(setingsDataDto.getRepeatPassword())
+            if (!(setingsDataDto.getNewPassword()).equals(setingsDataDto.getRepeatPassword())
                     || (passwordEncoder.matches(setingsDataDto.getNewPassword(), currentClient.getPassword()))){
                 throw new IncorrectPasswordException();
             }
@@ -157,6 +157,8 @@ public class ClientServiceImpl implements ClientService {
            currentClient.setName(setingsDataDto.getName());
            currentClient.setEmail(setingsDataDto.getEmail());
            currentClient.setLastname(setingsDataDto.getLastname());
+           currentClient.setUsername(setingsDataDto.getUsername());
+           currentClient.setDescription(setingsDataDto.getDescription());
        } else {
            currentClient.setPassword(passwordEncoder.encode(setingsDataDto.getNewPassword()));
        }
