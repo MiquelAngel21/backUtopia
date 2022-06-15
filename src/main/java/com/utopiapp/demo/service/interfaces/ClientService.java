@@ -26,6 +26,5 @@ public interface ClientService {
    Map<String, Object> getClientInJsonFormat(Client client);
    File getImageById(Long id);
    HttpHeaders chooseImageType(File file);
-   Client getClientById(Long clientId);
    List<Client> getAllClientsByClub(Club club);
 }

@@ -45,10 +45,6 @@ public class ClientServiceImpl implements ClientService {
         return clientRepo.findByEmail(email);
     }
 
-    @Override
-    public Client getClientById(Long id) {
-        return clientRepo.getById(id);
-    }
 
     @Override
     public Client save(Client newClient) {

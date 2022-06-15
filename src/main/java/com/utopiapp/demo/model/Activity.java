@@ -18,9 +18,6 @@ public class Activity {
     @Column(nullable = false, unique = true)
     private String name;
 
-    @Column(nullable = false)
-    private boolean isEvent;
-
     @Column(nullable = false, columnDefinition = "longtext")
     private String description;
 
@@ -62,9 +59,8 @@ public class Activity {
     @JsonIgnore
     private Set<Heart> hearts;
 
-    public Activity(String name, boolean isEvent, String description, LocalDateTime createdDate, Client client, Set<Tag> tags, Set<Material> materials, Set<File> files) {
+    public Activity(String name, String description, LocalDateTime createdDate, Client client, Set<Tag> tags, Set<Material> materials, Set<File> files) {
         this.name = name;
-        this.isEvent = isEvent;
         this.description = description;
         this.createdDate = createdDate;
         this.client = client;
@@ -74,9 +70,8 @@ public class Activity {
         this.hearts = new HashSet<>();
     }
 
-    public Activity(String name, boolean isEvent, String description, LocalDateTime createdDate, Client client) {
+    public Activity(String name, String description, LocalDateTime createdDate, Client client) {
         this.name = name;
-        this.isEvent = isEvent;
         this.description = description;
         this.createdDate = createdDate;
         this.client = client;
@@ -117,14 +112,6 @@ public class Activity {
 
     public void setCreatedDate(LocalDateTime createdDate) {
         this.createdDate = createdDate;
-    }
-
-    public boolean isEvent() {
-        return isEvent;
-    }
-
-    public void setEvent(boolean event) {
-        isEvent = event;
     }
 
     public String getDescription() {

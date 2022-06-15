@@ -53,7 +53,6 @@ public class ActivityServiceImpl implements ActivityService {
             throw new EmptyFieldsException();
         }
         activity.setName(activityDto.getName());
-        activity.setEvent(activityDto.isEvent()); //maybe no se implementa por ahora
         activity.setDescription(activityDto.getDescription());
         activity.setCreatedDate(LocalDateTime.now());
         activity.setClient(userMain.toClient());
@@ -95,10 +94,11 @@ public class ActivityServiceImpl implements ActivityService {
         Set<File> finalFiles = new HashSet<>();
         for (FileDto fileDto : activityDto.getFiles()) {
             File file = fileDtoIntoFile(fileDto);
-            File fileAlreadyExists = fileRepoMysql.findByContent(file.getContent());
+            boolean fileAlreadyExists = fileRepoMysql.existsByContent(file.getContent());
 
-            if (fileAlreadyExists != null) {
-                finalFiles.add(fileAlreadyExists);
+            if (fileAlreadyExists) {
+                File fileInDataBase = fileRepoMysql.findByContent(file.getContent());
+                finalFiles.add(fileInDataBase);
             } else {
                 finalFiles.add(file);
                 fileRepoMysql.save(file);
@@ -175,7 +175,6 @@ public class ActivityServiceImpl implements ActivityService {
         Set<Heart> newClientLikes = currentClient.getHearts();
         newClientLikes.add(newLike);
         currentClient.setHearts(newClientLikes);
-        activity.setClient(currentClient);
 
         activityRepoMysql.save(activity);
         clientService.save(currentClient);
@@ -195,7 +194,6 @@ public class ActivityServiceImpl implements ActivityService {
             }
         }
         currentClient.setHearts(allHeartsFromClient);
-        activity.setClient(currentClient);
 
         clientService.save(currentClient);
         activityRepoMysql.save(activity);
@@ -274,7 +272,6 @@ public class ActivityServiceImpl implements ActivityService {
         Map<String, Object> activityJson = new HashMap<>();
         activityJson.put("id", activity.getId());
         activityJson.put("name", activity.getName());
-        activityJson.put("isEvent", activity.isEvent());
         activityJson.put("description", activity.getDescription());
         activityJson.put("createdDate", activity.getCreatedDate());
         activityJson.put("client", clientService.getClientInJsonFormat(activity.getClient()));
@@ -305,7 +302,7 @@ public class ActivityServiceImpl implements ActivityService {
         activities.add(activity);
         List<Material> materials = materialRepoMysql.getMaterialsByActivities_Id(id);
         List<Tag> tags = tagRepoMysql.findByActivitiesIn(activities);
-        jsonData.put("activity", activity);
+        jsonData.put("activity", createActivityJson(activity));
         jsonData.put("materials", materials);
         jsonData.put("activity_tags", tags);
         return jsonData;

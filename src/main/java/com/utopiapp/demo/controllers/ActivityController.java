@@ -70,13 +70,11 @@ public class ActivityController {
             @RequestBody ActivityDto activityDto,
             Authentication authentication
     ) {
-        try {
+
             Activity activity = new Activity();
             UserMain userMain = (UserMain) authentication.getPrincipal();
             return new ResponseEntity<>(activityService.createNewActivity(activity, activityDto, userMain, false), HttpStatus.OK);
-        } catch (Exception e) {
-            return new ResponseEntity<>(new Message("Error creant l'activitat"), HttpStatus.CONFLICT);
-        }
+
     }
 
     @GetMapping(value = "/activities/{id}", produces = {"application/json"})
