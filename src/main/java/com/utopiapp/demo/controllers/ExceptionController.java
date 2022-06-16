@@ -14,8 +14,13 @@ public class ExceptionController {
 
     Map<String, String> errors = new HashMap<>();
 
-    @ExceptionHandler({IncorrectPasswordException.class, EmptyFieldsException.class, UnauthorizedException.class,
-    RareCharacterException.class})
+    @ExceptionHandler({
+            IncorrectPasswordException.class,
+            EmptyFieldsException.class,
+            UnauthorizedException.class,
+            RareCharacterException.class,
+            CodeNotExistsException.class
+    })
     public ResponseEntity<?> exceptionHandler(RuntimeException runtimeException){
         errors.clear();
         if (runtimeException instanceof IncorrectPasswordException){
@@ -29,6 +34,9 @@ public class ExceptionController {
             return new ResponseEntity<>(errors, HttpStatus.UNAUTHORIZED);
         }else if (runtimeException instanceof RareCharacterException){
             errors.put("message", new RareCharacterException().getMessage());
+            return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
+        }else if (runtimeException instanceof CodeNotExistsException){
+            errors.put("message", new CodeNotExistsException().getMessage());
             return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
         }
         return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);

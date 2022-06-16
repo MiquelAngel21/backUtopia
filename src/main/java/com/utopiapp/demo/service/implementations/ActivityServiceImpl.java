@@ -61,9 +61,6 @@ public class ActivityServiceImpl implements ActivityService {
         activity.setClient(userMain.toClient());
         activity.setTags(activityDto.getTags());
         addMaterialsToActivity(activity, activityDto);
-        if (!isUpdate) {
-            addFilesToActivity(activity, activityDto);
-        }
         activity = activityRepoMysql.save(activity);
         return activity;
     }
@@ -93,31 +90,6 @@ public class ActivityServiceImpl implements ActivityService {
         }
     }
 
-    private void addFilesToActivity(Activity activity, ActivityDto activityDto) {
-        Set<File> finalFiles = new HashSet<>();
-        for (FileDto fileDto : activityDto.getFiles()) {
-            File file = fileDtoIntoFile(fileDto);
-            boolean fileAlreadyExists = fileRepoMysql.existsByContent(file.getContent());
-
-            if (fileAlreadyExists) {
-                File fileInDataBase = fileRepoMysql.findByContent(file.getContent());
-                finalFiles.add(fileInDataBase);
-            } else {
-                finalFiles.add(file);
-                fileRepoMysql.save(file);
-            }
-        }
-        activity.setFiles(finalFiles);
-    }
-
-    private File fileDtoIntoFile(FileDto fileDto) {
-        File file = new File();
-        file.setContent(Base64.getDecoder().decode(fileDto.getContent()));
-        file.setName(fileDto.getName());
-        file.setMediaType(fileDto.getMediaType());
-        return file;
-    }
-
     @Override
     public void updateAnExistingActivity(Long id, Activity activity, ActivityDto activityDto, UserMain userMain) {
         if ((activityDto.getName().isEmpty() || activityDto.getDescription().isEmpty()) || activityDto.getTags().isEmpty()){
@@ -132,7 +104,10 @@ public class ActivityServiceImpl implements ActivityService {
         if(!isOwner(user.toClient(), id)){
             throw new UnauthorizedException();
         }
-        activityRepoMysql.delete(activityRepoMysql.getById(id));
+        Activity activityToDelete = activityRepoMysql.getById(id);
+        List<Heart> heartsOfActivity = heartRepoMysql.findHeartsByActivity_Id(id);
+        heartRepoMysql.deleteAll(heartsOfActivity);
+        activityRepoMysql.delete(activityToDelete);
     }
 
     @Override
@@ -280,7 +255,6 @@ public class ActivityServiceImpl implements ActivityService {
         activityJson.put("client", clientService.getClientInJsonFormat(activity.getClient()));
         activityJson.put("tags", activity.getTags());
         activityJson.put("materials", activity.getMaterials());
-        activityJson.put("files", activity.getFiles());
         activityJson.put("hearts", heartsToJson(activity.getHearts()));
         return activityJson;
     }

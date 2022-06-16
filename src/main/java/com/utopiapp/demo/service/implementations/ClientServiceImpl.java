@@ -13,7 +13,6 @@ import com.utopiapp.demo.repositories.mysql.ClubRepo;
 import com.utopiapp.demo.repositories.mysql.CoordinatorRepo;
 import com.utopiapp.demo.repositories.mysql.FileRepo;
 import com.utopiapp.demo.service.interfaces.ClientService;
-import com.utopiapp.demo.service.interfaces.ClubService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -183,13 +182,13 @@ public class ClientServiceImpl implements ClientService {
                 throw new EmptyFieldsException();
             }
         } else {
-            if (!currentClient.getPassword().equals(passwordEncoder.encode(setingsDataDto.getConfirmPassword2()))){
+            if (!passwordEncoder.matches(setingsDataDto.getConfirmPassword2(), currentClient.getPassword())){
                 throw new IncorrectPasswordException();
             }
             if (setingsDataDto.getNewPassword().equals("") || setingsDataDto.getRepeatPassword().equals("")){
                 throw new EmptyFieldsException();
             }
-            if (!passwordEncoder.encode(setingsDataDto.getNewPassword()).equals(setingsDataDto.getRepeatPassword())
+            if (!(setingsDataDto.getNewPassword()).equals(setingsDataDto.getRepeatPassword())
                     || (passwordEncoder.matches(setingsDataDto.getNewPassword(), currentClient.getPassword()))){
                 throw new IncorrectPasswordException();
             }
@@ -315,5 +314,22 @@ public class ClientServiceImpl implements ClientService {
 
     private Page<Client> getVolunteersOfClub(Club club, Pageable paging) {
         return clientRepo.findAllByClubOrderByCreatedDateDesc(club, paging);
+    }
+
+    @Override
+    public void removeClubFromClient(Client client) {
+        client.setClub(null);
+        clientRepo.save(client);
+    }
+
+    @Override
+    public String signInClub(Client client, String code) {
+        Club club = clubRepo.findClubByAccessCode(code);
+        if (club == null){
+            throw new CodeNotExistsException();
+        }
+        client.setClub(club);
+        clientRepo.save(client);
+        return club.getName();
     }
 }
