@@ -22,10 +22,6 @@ public class File {
     @Column(nullable = false)
     private String mediaType;
 
-    @ManyToMany(mappedBy = "files")
-    @JsonIgnore
-    private Set<Activity> activities;
-
     @ManyToOne()
     @JsonIgnore
     private Club club;
@@ -64,14 +60,6 @@ public class File {
 
     public void setMediaType(String mediaType) {
         this.mediaType = mediaType;
-    }
-
-    public Set<Activity> getActivities() {
-        return activities;
-    }
-
-    public void setActivities(Set<Activity> activity) {
-        this.activities = activity;
     }
 
     public Club getClub() {

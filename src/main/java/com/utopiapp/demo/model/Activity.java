@@ -46,15 +46,6 @@ public class Activity {
     )
     private Set<Material> materials;
 
-    @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(
-            joinColumns=
-            @JoinColumn(name="activities_id", referencedColumnName="id"),
-            inverseJoinColumns=
-            @JoinColumn(name="files_id", referencedColumnName="id")
-    )
-    private Set<File> files;
-
     @OneToMany(mappedBy = "activity", fetch = FetchType.EAGER)
     @JsonIgnore
     private Set<Heart> hearts;
@@ -66,7 +57,6 @@ public class Activity {
         this.client = client;
         this.tags = tags;
         this.materials = materials;
-        this.files = files;
         this.hearts = new HashSet<>();
     }
 
@@ -144,14 +134,6 @@ public class Activity {
 
     public void setMaterials(Set<Material> materials) {
         this.materials = materials;
-    }
-
-    public Set<File> getFiles() {
-        return files;
-    }
-
-    public void setFiles(Set<File> files) {
-        this.files = files;
     }
 
     @Override

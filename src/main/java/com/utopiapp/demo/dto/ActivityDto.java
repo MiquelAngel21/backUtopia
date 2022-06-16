@@ -14,7 +14,6 @@ public class ActivityDto {
     private Client client;
     private Set<Tag> tags;
     private Set<Material> materials;
-    private Set<FileDto> files;
     private Set<Heart> hearts;
 
     public Long getId() {
@@ -79,14 +78,6 @@ public class ActivityDto {
 
     public void setMaterials(Set<Material> materials) {
         this.materials = materials;
-    }
-
-    public Set<FileDto> getFiles() {
-        return files;
-    }
-
-    public void setFiles(Set<FileDto> files) {
-        this.files = files;
     }
 
     public Set<Heart> getHearts() {
