@@ -4,6 +4,7 @@ import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
 import java.time.LocalDate;
+import java.util.Objects;
 import java.util.Set;
 
 @Entity
@@ -34,19 +35,19 @@ public class Club {
     @Column(nullable = false)
     private LocalDate createDate;
 
-    @OneToOne()
+    @OneToOne(cascade = CascadeType.REMOVE)
     private Address address;
 
-    @OneToMany(mappedBy = "club")
+    @OneToMany(mappedBy = "club", fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
     private Set<Petition> petitions;
 
-    @OneToMany(mappedBy = "club")
+    @OneToMany(mappedBy = "club", fetch = FetchType.EAGER)
     private Set<Client> volunteers;
 
-    @OneToMany(mappedBy = "club")
+    @OneToMany(mappedBy = "club", cascade = CascadeType.REMOVE, fetch = FetchType.EAGER)
     private Set<File> files;
 
-    @OneToMany(fetch = FetchType.EAGER, mappedBy = "club")
+    @OneToMany(fetch = FetchType.EAGER, mappedBy = "club", cascade = CascadeType.REMOVE)
     private Set<Coordinator> coordinators;
 
     public Long getId() {
@@ -151,5 +152,18 @@ public class Club {
 
     public void setCoordinators(Set<Coordinator> coordinators) {
         this.coordinators = coordinators;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Club club = (Club) o;
+        return Objects.equals(id, club.id) && Objects.equals(email, club.email) && Objects.equals(name, club.name) && Objects.equals(whoAreWe, club.whoAreWe) && Objects.equals(organization, club.organization) && Objects.equals(accessCode, club.accessCode) && Objects.equals(cif, club.cif) && Objects.equals(createDate, club.createDate);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, email, name, whoAreWe, organization, accessCode, cif, createDate);
     }
 }

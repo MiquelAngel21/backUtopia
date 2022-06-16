@@ -27,4 +27,10 @@ public interface ClientService {
    File getImageById(Long id);
    HttpHeaders chooseImageType(File file);
    List<Client> getAllClientsByClub(Club club);
+
+   Map<String, Object> getPaginatedVolunteersByClub(String filter, Client toClient, Long clubId, int start, int length);
+
+    Boolean isCoordinator(Client client);
+
+    void deleteVolunteerFromClub(Long volunteerId);
 }

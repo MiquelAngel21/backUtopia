@@ -3,6 +3,7 @@ package com.utopiapp.demo.model;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
+import java.time.LocalDateTime;
 import java.util.Set;
 
 @Entity
@@ -18,6 +19,9 @@ public class Petition {
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private Status status;
+
+    @Column(nullable = false)
+    private LocalDateTime createdDate;
 
     @ManyToOne
     private Club club;
@@ -64,4 +68,14 @@ public class Petition {
     public void setClient(Client client) {
         this.client = client;
     }
+
+    public LocalDateTime getCreatedDate() {
+        return createdDate;
+    }
+
+    public void setCreatedDate(LocalDateTime createdDate) {
+        this.createdDate = createdDate;
+    }
+
+
 }

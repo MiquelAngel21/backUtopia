@@ -2,6 +2,7 @@ package com.utopiapp.demo.controllers;
 
 import com.utopiapp.demo.dto.ActivityDto;
 import com.utopiapp.demo.dto.Message;
+import com.utopiapp.demo.jwt.JwtProvider;
 import com.utopiapp.demo.model.Activity;
 import com.utopiapp.demo.model.Client;
 import com.utopiapp.demo.model.Tag;
@@ -9,13 +10,9 @@ import com.utopiapp.demo.model.UserMain;
 import com.utopiapp.demo.service.interfaces.ActivityService;
 import com.utopiapp.demo.service.interfaces.ClientService;
 import com.utopiapp.demo.service.interfaces.ClubService;
-import org.springframework.beans.factory.annotation.Autowired;
-import com.utopiapp.demo.service.interfaces.ClubService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -23,15 +20,11 @@ import java.util.Map;
 
 @RestController
 public class ActivityController {
+    private final ActivityService activityService;
 
-    @Autowired
-    ActivityService activityService;
-
-    @Autowired
-    ClientService clientService;
-
-    @Autowired
-    ClubService clubService;
+    public ActivityController(ActivityService activityService) {
+        this.activityService = activityService;
+    }
 
     @GetMapping(value = "/activities", produces = {"application/json"})
     @ResponseBody
@@ -84,25 +77,23 @@ public class ActivityController {
             Authentication authentication
     ) {
         UserMain userMain = (UserMain) authentication.getPrincipal();
+        Client client = userMain.toClient();
         List<Tag> tags = activityService.getAllTags();
 
         Map<String, Object> viewActivityDataJson = activityService.getActivityDataJson(id);
         viewActivityDataJson.put("tags", tags);
 
         Activity activity = activityService.getActivityById(id);
-        boolean isOwner = activityService.isOwner(userMain.toClient(), activity.getId());
+        boolean isOwner = activityService.isOwner(client, activity.getId());
         viewActivityDataJson.put("isOwner", isOwner);
 
-        Client activityCreator = clientService.getClientById(activity.getClient().getId());
+        Client activityCreator = activity.getClient();
         viewActivityDataJson.put("ownerName", activityCreator.getName() + " " + activityCreator.getLastname());
         viewActivityDataJson.put("ownerDescription", activityCreator.getDescription());
         viewActivityDataJson.put("ownerEmail", activityCreator.getEmail());
-        String clubName = clubService.getClubNameByClient(activityCreator);
-        viewActivityDataJson.put("ownerClubName", clubName);
-        int countLikes = activityService.getNumberOfLikesByClient(activityCreator);
-        viewActivityDataJson.put("ownerTotalLikes", countLikes);
-        int countActivities = activityService.getNumberOfActivitiesByClient(activityCreator);
-        viewActivityDataJson.put("ownerTotalActivities", countActivities);
+        viewActivityDataJson.put("ownerClubName", activityCreator.getClub().getName());
+        viewActivityDataJson.put("ownerTotalLikes", activityCreator.getHearts().size());
+        viewActivityDataJson.put("ownerTotalActivities", activityCreator.getActivities().size());
         return viewActivityDataJson;
     }
 
@@ -142,8 +133,7 @@ public class ActivityController {
     ) {
         UserMain userMain = (UserMain) authentication.getPrincipal();
         Map<String, Object> activityWithNewLike = activityService.manageLike(id, userMain);
-        Map<String, Object> hey = activityService.clientWithNewActivity(userMain.toClient(), activityWithNewLike);
-        return hey;
+        return activityService.clientWithNewActivity(userMain.toClient(), activityWithNewLike);
     }
 
 

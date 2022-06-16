@@ -42,28 +42,28 @@ public class Client{
     @JsonIgnore
     private Club club;
 
-    @OneToOne(fetch = FetchType.EAGER)
+    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
     @JsonIgnore
     private File file;
 
-    @OneToMany(mappedBy = "client", fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "client", fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
     @JsonIgnore
     private Set<Petition> petitions;
 
-    @OneToMany(mappedBy = "client", fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "client", fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
     @JsonIgnore
     private Set<Activity> activities;
 
-    @OneToMany(mappedBy = "client", fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "client", fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
     @JsonIgnore
     private Set<Heart> hearts;
 
-    @OneToOne(mappedBy = "person", fetch = FetchType.EAGER)
+    @OneToOne(mappedBy = "person", fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
     @JsonIgnore
     private Coordinator coordinator;
 
 
-    public Client(Long id, String name, String username, String lastname, String email, String password, LocalDateTime createdDate, Club club, Set<Petition> petitions, Set<Activity> activities, Set<Heart> hearts, String description) {
+    public Client(Long id, String name, String username, String lastname, String email, String password, LocalDateTime createdDate, Coordinator coordinator, Club club, Set<Petition> petitions, Set<Activity> activities, Set<Heart> hearts, String description) {
         this.id = id;
         this.name = name;
         this.username = username;
@@ -76,6 +76,7 @@ public class Client{
         this.activities = activities;
         this.hearts = hearts;
         this.description = description;
+        this.coordinator = coordinator;
     }
 
     public Client(String name, String username, String lastname, String email, String password, LocalDateTime createdDate) {
@@ -207,7 +208,7 @@ public class Client{
     }
 
     public UserMain toUserMain(){
-        return new UserMain(this.id, this.name, this.username, this.lastname, this.email, this.password, this.createdDate, this.club, this.petitions, this.activities, this.hearts, this.description);
+        return new UserMain(this.id, this.name, this.username, this.lastname, this.email, this.password, this.createdDate, this.club, this.petitions, this.activities, this.hearts, this.description, this.coordinator);
     }
 
     @Override
@@ -228,7 +229,7 @@ public class Client{
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Client client = (Client) o;
-        return Objects.equals(id, client.id) && Objects.equals(name, client.name) && Objects.equals(username, client.username) && Objects.equals(lastname, client.lastname) && Objects.equals(email, client.email) && Objects.equals(createdDate, client.createdDate) && Objects.equals(club, client.club);
+        return Objects.equals(id, client.id) && Objects.equals(name, client.name) && Objects.equals(username, client.username) && Objects.equals(lastname, client.lastname) && Objects.equals(email, client.email);
     }
 
     @Override

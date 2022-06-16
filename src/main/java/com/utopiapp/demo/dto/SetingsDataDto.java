@@ -14,8 +14,9 @@ public class SetingsDataDto {
     private String repeatPassword;
     private String confirmPassword2;
     private String updatingPassword;
+    private FileDto file;
 
-    public SetingsDataDto(String name, String lastname, String email, String username, String clubName, int countLikes, int countActivities, String description) {
+    public SetingsDataDto(String name, String lastname, String email, String username, String clubName, int countLikes, int countActivities, String description, FileDto fileDto) {
         this.name = name;
         this.lastname = lastname;
         this.email = email;
@@ -24,6 +25,7 @@ public class SetingsDataDto {
         this.countLikes = countLikes;
         this.countActivities = countActivities;
         this.description = description;
+        this.file = fileDto;
     }
 
     public String getUsername() {
@@ -128,6 +130,14 @@ public class SetingsDataDto {
 
     public void setUpdatingPassword(String updatingPassword) {
         this.updatingPassword = updatingPassword;
+    }
+
+    public FileDto getFileDto() {
+        return file;
+    }
+
+    public void setFileDto(FileDto fileDto) {
+        this.file = fileDto;
     }
 }
 

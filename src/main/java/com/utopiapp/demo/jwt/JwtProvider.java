@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
+import java.util.Map;
 
 /**
  * Clase que genera el token y valida que este bien formado y no este expirado
@@ -30,9 +31,9 @@ public class JwtProvider {
      *setExpiration --> Asigna fecha de expiración
      * signWith --> Firma
      */
-    public String generateToken(UserMain userMain){
+    public String generateToken(Map<String, Object> userMain){
 
-        return Jwts.builder().setSubject(userMain.getEmail())
+        return Jwts.builder().setClaims(userMain)
                 .signWith(SignatureAlgorithm.HS512, secret)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(new Date().getTime() + expiration * 1000L))
@@ -41,7 +42,8 @@ public class JwtProvider {
 
     //subject --> user
     public String getEmailFromToken(String token){
-        return Jwts.parser().setSigningKey(secret).parseClaimsJws(token).getBody().getSubject();
+        Map<String, Object> user = Jwts.parser().setSigningKey(secret).parseClaimsJws(token).getBody();
+        return (String) user.get("email");
     }
 
     public Boolean validateToken(String token){

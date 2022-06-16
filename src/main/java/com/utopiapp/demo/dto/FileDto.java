@@ -6,6 +6,16 @@ public class FileDto {
     private String mediaType;
     private Long activity;
 
+    public FileDto(String name, String content, String mediaType, Long activity) {
+        this.name = name;
+        this.content = content;
+        this.mediaType = mediaType;
+        this.activity = activity;
+    }
+
+    public FileDto() {
+    }
+
     public String getName() {
         return name;
     }

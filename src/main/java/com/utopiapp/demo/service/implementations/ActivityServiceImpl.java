@@ -5,6 +5,7 @@ import com.utopiapp.demo.dto.FileDto;
 import com.utopiapp.demo.exceptions.EmptyFieldsException;
 import com.utopiapp.demo.exceptions.RareCharacterException;
 import com.utopiapp.demo.exceptions.UnauthorizedException;
+import com.utopiapp.demo.jwt.JwtProvider;
 import com.utopiapp.demo.model.*;
 import com.utopiapp.demo.repositories.mysql.*;
 import com.utopiapp.demo.service.interfaces.ActivityService;
@@ -26,14 +27,16 @@ public class ActivityServiceImpl implements ActivityService {
     private final HeartRepo heartRepoMysql;
     private final TagRepo tagRepoMysql;
     private final ClientService clientService;
+    private final JwtProvider jwtProvider;
 
-    public ActivityServiceImpl(ActivityRepo activityRepoMysql, FileRepo fileRepoMysql, MaterialRepo materialRepoMysql, HeartRepo heartRepoMysql, TagRepo tagRepoMysql, ClientServiceImpl clientService) {
+    public ActivityServiceImpl(ActivityRepo activityRepoMysql, FileRepo fileRepoMysql, MaterialRepo materialRepoMysql, HeartRepo heartRepoMysql, TagRepo tagRepoMysql, ClientServiceImpl clientService, JwtProvider jwtProvider) {
         this.activityRepoMysql = activityRepoMysql;
         this.fileRepoMysql = fileRepoMysql;
         this.materialRepoMysql = materialRepoMysql;
         this.heartRepoMysql = heartRepoMysql;
         this.tagRepoMysql = tagRepoMysql;
         this.clientService = clientService;
+        this.jwtProvider = jwtProvider;
     }
 
     @Override
@@ -325,21 +328,11 @@ public class ActivityServiceImpl implements ActivityService {
     @Override
     public Map<String, Object> clientWithNewActivity(Client client, Map<String, Object> activityWithNewLike) {
         Map<String, Object> activityWithNewUser = new HashMap<>();
+        String jwt = jwtProvider.generateToken(clientService.getClientInJsonFormat(client));
         activityWithNewUser.put("client", clientService.getClientInJsonFormat(client));
         activityWithNewUser.put("activity", activityWithNewLike);
+        activityWithNewUser.put("jwt", jwt);
         return activityWithNewUser;
-    }
-
-    @Override
-    public int getNumberOfLikesByClient(Client client) {
-        int countLikes = heartRepoMysql.findHeartsByClient(client).size();
-        return countLikes;
-    }
-
-    @Override
-    public int getNumberOfActivitiesByClient(Client client){
-        int countActivities = activityRepoMysql.findActivitiesByClient(client).size();
-        return countActivities;
     }
 
     private List<Map<String, Object>> heartsToJson(Set<Heart> hearts) {

@@ -46,7 +46,7 @@ public class Activity {
     )
     private Set<Material> materials;
 
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
     @JoinTable(
             joinColumns=
             @JoinColumn(name="activities_id", referencedColumnName="id"),
@@ -55,7 +55,7 @@ public class Activity {
     )
     private Set<File> files;
 
-    @OneToMany(mappedBy = "activity", fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "activity", fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
     @JsonIgnore
     private Set<Heart> hearts;
 

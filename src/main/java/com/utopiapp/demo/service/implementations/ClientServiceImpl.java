@@ -3,15 +3,20 @@ package com.utopiapp.demo.service.implementations;
 import com.utopiapp.demo.dto.LoginDto;
 import com.utopiapp.demo.dto.RegisterDto;
 import com.utopiapp.demo.dto.SetingsDataDto;
+import com.utopiapp.demo.exceptions.AtLeastOneCoordinatorException;
 import com.utopiapp.demo.exceptions.EmptyFieldsException;
 import com.utopiapp.demo.exceptions.IncorrectPasswordException;
-import com.utopiapp.demo.model.Client;
-import com.utopiapp.demo.model.Club;
-import com.utopiapp.demo.model.File;
-import com.utopiapp.demo.model.Heart;
+import com.utopiapp.demo.exceptions.NotCoordinatorException;
+import com.utopiapp.demo.model.*;
 import com.utopiapp.demo.repositories.mysql.ClientRepo;
+import com.utopiapp.demo.repositories.mysql.ClubRepo;
+import com.utopiapp.demo.repositories.mysql.CoordinatorRepo;
 import com.utopiapp.demo.repositories.mysql.FileRepo;
 import com.utopiapp.demo.service.interfaces.ClientService;
+import com.utopiapp.demo.service.interfaces.ClubService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.context.SecurityContext;
@@ -31,12 +36,16 @@ public class ClientServiceImpl implements ClientService {
     private final PasswordEncoder passwordEncoder;
     private final HttpSession session;
     private final FileRepo fileRepo;
+    private final ClubRepo clubRepo;
+    private final CoordinatorRepo coordinatorRepo;
 
-    public ClientServiceImpl(ClientRepo clientRepo, PasswordEncoder passwordEncoder, HttpSession session, FileRepo fileRepo) {
+    public ClientServiceImpl(ClientRepo clientRepo, PasswordEncoder passwordEncoder, HttpSession session, FileRepo fileRepo, ClubRepo clubRepo, CoordinatorRepo coordinatorRepo) {
         this.clientRepo = clientRepo;
         this.passwordEncoder = passwordEncoder;
         this.session = session;
         this.fileRepo = fileRepo;
+        this.clubRepo = clubRepo;
+        this.coordinatorRepo = coordinatorRepo;
     }
 
 
@@ -128,7 +137,40 @@ public class ClientServiceImpl implements ClientService {
         currentUserData.put("lastname", client.getLastname());
         currentUserData.put("email", client.getEmail());
         currentUserData.put("Hearts", heartsToJsonFormat(client.getHearts()));
+        currentUserData.put("description", client.getDescription());
+        currentUserData.put("activities", getLazyActivitiesJson(client.getActivities()));
+        if (client.getCoordinator() != null){
+            currentUserData.put("coordinator", coordinatorToLazyMap(client.getCoordinator()));
+        } else {
+            currentUserData.put("coordinator", new HashMap<>());
+        }
+
         return currentUserData;
+    }
+
+    private List<Map<String, Object>> getLazyActivitiesJson(Set<Activity> activities) {
+        List<Map<String, Object>> getAllActivitiesByClient = new ArrayList<>();
+
+        for (Activity activity : activities){
+            getAllActivitiesByClient.add(lazyMapActivity(activity));
+        }
+        return getAllActivitiesByClient;
+    }
+
+    private Map<String, Object> lazyMapActivity(Activity activity) {
+        Map<String, Object> activityJson = new HashMap<>();
+        activityJson.put("id", activity.getId());
+        activityJson.put("name", activity.getName());
+        activityJson.put("createdDate", activity.getCreatedDate());
+        return activityJson;
+    }
+
+    private Map<String, Object> coordinatorToLazyMap(Coordinator coordinator) {
+        Map<String, Object> coordinatorHashMap = new HashMap<>();
+        coordinatorHashMap.put("id", coordinator.getId());
+        coordinatorHashMap.put("club", coordinator.getClub().getId());
+        coordinatorHashMap.put("person", coordinator.getPerson().getId());
+        return coordinatorHashMap;
     }
 
     @Override
@@ -137,7 +179,7 @@ public class ClientServiceImpl implements ClientService {
             if (!passwordEncoder.matches(setingsDataDto.getConfirmPassword1(), currentClient.getPassword())){
                 throw new IncorrectPasswordException();
             }
-            if (setingsDataDto.getName().equals("") || setingsDataDto.getLastname().equals("") || setingsDataDto.getEmail().equals("")){
+            if (setingsDataDto.getName().equals("") || setingsDataDto.getLastname().equals("") || setingsDataDto.getEmail().equals("") || setingsDataDto.getUsername().equals("")){
                 throw new EmptyFieldsException();
             }
         } else {
@@ -157,6 +199,8 @@ public class ClientServiceImpl implements ClientService {
            currentClient.setName(setingsDataDto.getName());
            currentClient.setEmail(setingsDataDto.getEmail());
            currentClient.setLastname(setingsDataDto.getLastname());
+           currentClient.setUsername(setingsDataDto.getUsername());
+           currentClient.setDescription(setingsDataDto.getDescription());
        } else {
            currentClient.setPassword(passwordEncoder.encode(setingsDataDto.getNewPassword()));
        }
@@ -198,6 +242,78 @@ public class ClientServiceImpl implements ClientService {
 
     @Override
     public List<Client> getAllClientsByClub(Club club) {
-        return clientRepo.findAllByClub(club);
+        return clientRepo.findAllByClubOrderByCreatedDateDesc(club);
+    }
+
+    @Override
+    public Map<String, Object> getPaginatedVolunteersByClub(String volunteerSearcher, Client client, Long clubId, int start, int length) {
+        Pageable paging = PageRequest.of(start / length, length);
+        Page<Client> pageResult;
+        Club club = clubRepo.findClubById(clubId);
+
+        if (coordinatorRepo.existsCoordinatorByPersonAndClub(client, club)){
+            if (volunteerSearcher != null && !volunteerSearcher.equals("")){
+                pageResult = clientRepo.findAllByNameLikeAndClubOrderByCreatedDateDesc("%"+volunteerSearcher+"%", club, paging);
+            } else {
+                pageResult = getVolunteersOfClub(club, paging);
+            }
+        } else {
+            throw new NotCoordinatorException();
+        }
+
+        long total = pageResult.getTotalElements();
+        List<Map<String, Object>> data = getListOfClientsInJsonFormat(pageResult.getContent());
+
+        Map<String, Object> json = new HashMap<>();
+        json.put("data", data);
+        json.put("recordsTotal", total);
+        return json;
+    }
+
+    @Override
+    public Boolean isCoordinator(Client client) {
+        return coordinatorRepo.existsCoordinatorByPersonAndClub(client, client.getCoordinator().getClub());
+    }
+
+    @Override
+    public void deleteVolunteerFromClub(Long volunteerId) {
+        Client client = clientRepo.findClientById(volunteerId);
+        Club club = client.getClub();
+        Set<Client> allVolunteers = club.getVolunteers();
+
+        if(allVolunteers.size() == 1){
+            clubRepo.delete(club);
+        } else {
+            Set<Client> newListOfVolunteers = new HashSet<>();
+            boolean atLeastOneCoordinator = false;
+            for (Client volunteer : allVolunteers){
+                if (!volunteer.equals(client)){
+                    newListOfVolunteers.add(volunteer);
+                    if (volunteer.getCoordinator() != null && volunteer.getCoordinator().getClub().equals(club)){
+                        atLeastOneCoordinator = true;
+                    }
+                }
+            }
+
+            if (atLeastOneCoordinator){
+                club.setVolunteers(newListOfVolunteers);
+                client.setClub(null);
+                clientRepo.save(client);
+                clubRepo.save(club);
+
+                if (client.getCoordinator() != null){
+                    coordinatorRepo.delete(coordinatorRepo.findCoordinatorByPerson_id(client.getId()));
+                }
+
+            } else {
+                throw new AtLeastOneCoordinatorException();
+            }
+
+        }
+    }
+
+
+    private Page<Client> getVolunteersOfClub(Club club, Pageable paging) {
+        return clientRepo.findAllByClubOrderByCreatedDateDesc(club, paging);
     }
 }

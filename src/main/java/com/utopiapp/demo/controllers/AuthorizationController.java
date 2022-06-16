@@ -57,7 +57,7 @@ public class AuthorizationController{
         SecurityContextHolder.getContext().setAuthentication(authentication);
         UserMain userMain = (UserMain) authentication.getPrincipal();
         Map<String, Object> currentUser = clientService.getClientInJsonFormat(clientService.getClientByEmail(userMain.getEmail()));
-        String jwt = jwtProvider.generateToken(userMain);
+        String jwt = jwtProvider.generateToken(currentUser);
         return new JwtDto(jwt, currentUser);
     }
 
@@ -71,5 +71,13 @@ public class AuthorizationController{
         return ResponseEntity.ok()
                 .headers(httpHeaders)
                 .body(file.getContent());
+    }
+
+    @GetMapping(value = "/isCoordinator", produces = {"application/json"})
+    public Boolean getIsCoordinator(
+            Authentication authentication
+    ) {
+        UserMain userMain = (UserMain) authentication.getPrincipal();
+        return clientService.isCoordinator(userMain.toClient());
     }
 }

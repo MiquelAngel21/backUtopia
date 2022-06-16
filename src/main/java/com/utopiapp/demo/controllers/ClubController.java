@@ -2,12 +2,10 @@ package com.utopiapp.demo.controllers;
 
 import com.utopiapp.demo.dto.ClubWithAddressDto;
 import com.utopiapp.demo.dto.DescriptionPetitionDto;
-import com.utopiapp.demo.dto.Message;
 import com.utopiapp.demo.model.Club;
 import com.utopiapp.demo.model.UserMain;
+import com.utopiapp.demo.service.interfaces.ClientService;
 import com.utopiapp.demo.service.interfaces.ClubService;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,9 +16,11 @@ import java.util.Map;
 public class ClubController {
 
     private final ClubService clubService;
+    private final ClientService clientService;
 
-    public ClubController(ClubService clubService) {
+    public ClubController(ClubService clubService, ClientService clientService) {
         this.clubService = clubService;
+        this.clientService = clientService;
     }
 
     @PostMapping(value = "/new-club", produces = {"application/json"})
@@ -44,14 +44,13 @@ public class ClubController {
 
     @PostMapping(value = "/new-petition/{clubId}", produces = {"application/json"})
     @ResponseBody
-    public ResponseEntity<?> createNewPetition(
+    public Map<String, Object> createNewPetition(
             @PathVariable Long clubId,
             @RequestBody DescriptionPetitionDto descriptionPetitionDto,
             Authentication authentication
     ){
         UserMain userMain = (UserMain) authentication.getPrincipal();
-        clubService.createNewPetition(clubId, descriptionPetitionDto, userMain.toClient());
-        return new ResponseEntity<>(new Message("Petition created successfully"), HttpStatus.CREATED);
+        return clubService.createNewPetition(clubId, descriptionPetitionDto, userMain.toClient());
     }
 
     @GetMapping(value = "/clubs/{name}", produces = {"application/json"})
@@ -86,5 +85,84 @@ public class ClubController {
             @PathVariable Long clubId
     ){
         return clubService.getMonitorsByClub(clubId);
+    }
+
+    @GetMapping(value = "/admin/club/{clientId}", produces = {"application/json"})
+    @ResponseBody
+    public Map<String, Object> clubByCoordinator(
+            @PathVariable Long clientId
+    ){
+        return clubService.getClubByCoordinator(clientId);
+    }
+
+    @GetMapping(value = "/admin/volunteers/{clubId}", produces = {"application/json"})
+    @ResponseBody
+    public Map<String, Object>  paginatedVolunteersByClub(
+            @PathVariable Long clubId,
+            @RequestParam int start,
+            @RequestParam int length,
+            Authentication authentication
+    ){
+        UserMain userMain = (UserMain) authentication.getPrincipal();
+        return clientService.getPaginatedVolunteersByClub(null, userMain.toClient(), clubId, start, length);
+    }
+
+    @GetMapping(value = "/admin/petitions/{clubId}", produces = {"application/json"})
+    @ResponseBody
+    public Map<String, Object>  paginatedPetitionsByClub(
+            @PathVariable Long clubId,
+            @RequestParam int start,
+            @RequestParam int length,
+            Authentication authentication
+    ){
+        UserMain userMain = (UserMain) authentication.getPrincipal();
+        return clubService.getPaginatedPetitionsByClub(userMain.toClient(), clubId, start, length);
+    }
+
+    @PostMapping(value = "/admin/petitions/{petitionId}/{newStatus}", produces = {"application/json"})
+    @ResponseBody
+    public Map<String, Object> handlePetitions(
+            @PathVariable Long petitionId,
+            @PathVariable String newStatus,
+            Authentication authentication
+    ){
+        UserMain userMain = (UserMain) authentication.getPrincipal();
+        return clubService.acceptOrDenyPetitions(userMain.toClient(), newStatus, petitionId);
+    }
+
+    @PostMapping(value = "/admin/coordinators/{volunteerId}", produces = {"application/json"})
+    @ResponseBody
+    public Map<String, Object> ascentUser(
+            @PathVariable Long volunteerId,
+            Authentication authentication
+    ){
+        UserMain userMain = (UserMain) authentication.getPrincipal();
+        return clubService.ascentOrLowerAVolunteer(userMain.toClient(), volunteerId);
+    }
+
+    @DeleteMapping(value = "/admin/volunteers/{volunteerId}", produces = {"application/json"})
+    @ResponseBody
+    public Map<String, Object>  deleteVolunteer(
+            @PathVariable Long volunteerId,
+            @RequestParam int start,
+            @RequestParam int length,
+            @RequestParam String volunteerSearcher,
+            Authentication authentication
+    ){
+        UserMain userMain = (UserMain) authentication.getPrincipal();
+        clientService.deleteVolunteerFromClub(volunteerId);
+        return clientService.getPaginatedVolunteersByClub(volunteerSearcher, userMain.toClient(), userMain.toClient().getCoordinator().getClub().getId(), start, length);
+    }
+
+    @PostMapping(value = "/admin/volunteers-filtered/{volunteerSearcher}", produces = {"application/json"})
+    @ResponseBody
+    public Map<String, Object>  getPaginatedFilteredVolunteers(
+            @PathVariable String volunteerSearcher,
+            @RequestParam int start,
+            @RequestParam int length,
+            Authentication authentication
+    ){
+        UserMain userMain = (UserMain) authentication.getPrincipal();
+        return clientService.getPaginatedVolunteersByClub(volunteerSearcher, userMain.toClient(), userMain.toClient().getCoordinator().getClub().getId(), start, length);
     }
 }

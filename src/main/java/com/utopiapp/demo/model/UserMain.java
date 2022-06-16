@@ -15,6 +15,7 @@ public class UserMain implements UserDetails {
     private String lastname;
     private String email;
     private String password;
+    private Coordinator coordinator;
     private LocalDateTime createdDate;
     private Collection<? extends GrantedAuthority> authorities;
     private Club club;
@@ -22,7 +23,7 @@ public class UserMain implements UserDetails {
     private Set<Activity> activities;
     private Set<Heart> hearts;
 
-    public UserMain(Long id, String name, String username, String lastname, String email, String password, LocalDateTime createdDate, Club club, Set<Petition> petitions, Set<Activity> activities, Set<Heart> hearts, String description) {
+    public UserMain(Long id, String name, String username, String lastname, String email, String password, LocalDateTime createdDate, Club club, Set<Petition> petitions, Set<Activity> activities, Set<Heart> hearts, String description, Coordinator coordinator) {
         this.id = id;
         this.name = name;
         this.username = username;
@@ -35,10 +36,11 @@ public class UserMain implements UserDetails {
         this.activities = activities;
         this.hearts = hearts;
         this.club = club;
+        this.coordinator = coordinator;
     }
 
     public Client toClient(){
-        return new Client(this.id, this.name, this.username, this.lastname, this.email, this.password, this.createdDate, this.club, this.petitions, this.activities, this.hearts, this.description);
+        return new Client(this.id, this.name, this.username, this.lastname, this.email, this.password, this.createdDate, this.coordinator, this.club, this.petitions, this.activities, this.hearts, this.description);
     }
 
     public Collection<? extends GrantedAuthority> getAuthorities() {

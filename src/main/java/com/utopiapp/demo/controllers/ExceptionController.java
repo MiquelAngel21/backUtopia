@@ -1,10 +1,6 @@
 package com.utopiapp.demo.controllers;
 
-import com.utopiapp.demo.exceptions.AlreadyInAClubException;
-import com.utopiapp.demo.exceptions.EmptyFieldsException;
-import com.utopiapp.demo.exceptions.IncorrectPasswordException;
-import com.utopiapp.demo.exceptions.RareCharacterException;
-import com.utopiapp.demo.exceptions.UnauthorizedException;
+import com.utopiapp.demo.exceptions.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -18,7 +14,8 @@ public class ExceptionController {
 
     Map<String, String> errors = new HashMap<>();
 
-    @ExceptionHandler({IncorrectPasswordException.class, EmptyFieldsException.class})
+    @ExceptionHandler({IncorrectPasswordException.class, EmptyFieldsException.class, UnauthorizedException.class,
+    RareCharacterException.class})
     public ResponseEntity<?> exceptionHandler(RuntimeException runtimeException){
         errors.clear();
         if (runtimeException instanceof IncorrectPasswordException){
@@ -37,12 +34,27 @@ public class ExceptionController {
         return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
     }
 
-    @ExceptionHandler({AlreadyInAClubException.class})
+    @ExceptionHandler({AlreadyInAClubException.class, AtLeastOneCoordinatorException.class})
     public ResponseEntity<?> clubExceptions(RuntimeException runtimeException){
         errors.clear();
         if (runtimeException instanceof AlreadyInAClubException){
-            System.out.println("HEY");
             errors.put("message", new AlreadyInAClubException().getMessage());
+            return new ResponseEntity<>(errors, HttpStatus.CONFLICT);
+        } else if (runtimeException instanceof AtLeastOneCoordinatorException){
+            errors.put("message", new AtLeastOneCoordinatorException().getMessage());
+            return new ResponseEntity<>(errors, HttpStatus.CONFLICT);
+        }
+        return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler({PetitionTimeNotExpired.class, PetitionWasRejectedException.class})
+    public ResponseEntity<?> petitionsException(RuntimeException runtimeException){
+        errors.clear();
+        if (runtimeException instanceof PetitionTimeNotExpired){
+            errors.put("message", new PetitionTimeNotExpired().getMessage());
+            return new ResponseEntity<>(errors, HttpStatus.TOO_EARLY);
+        } else if (runtimeException instanceof PetitionWasRejectedException){
+            errors.put("message", new PetitionWasRejectedException().getMessage());
             return new ResponseEntity<>(errors, HttpStatus.CONFLICT);
         }
         return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
