@@ -27,4 +27,6 @@ public interface ClientService {
    File getImageById(Long id);
    HttpHeaders chooseImageType(File file);
    List<Client> getAllClientsByClub(Club club);
+   void removeClubFromClient(Client client);
+   String signInClub(Client client, String code);
 }

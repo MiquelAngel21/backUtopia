@@ -1,10 +1,6 @@
 package com.utopiapp.demo.controllers;
 
-import com.utopiapp.demo.exceptions.AlreadyInAClubException;
-import com.utopiapp.demo.exceptions.EmptyFieldsException;
-import com.utopiapp.demo.exceptions.IncorrectPasswordException;
-import com.utopiapp.demo.exceptions.RareCharacterException;
-import com.utopiapp.demo.exceptions.UnauthorizedException;
+import com.utopiapp.demo.exceptions.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -18,7 +14,13 @@ public class ExceptionController {
 
     Map<String, String> errors = new HashMap<>();
 
-    @ExceptionHandler({IncorrectPasswordException.class, EmptyFieldsException.class})
+    @ExceptionHandler({
+            IncorrectPasswordException.class,
+            EmptyFieldsException.class,
+            UnauthorizedException.class,
+            RareCharacterException.class,
+            CodeNotExistsException.class
+    })
     public ResponseEntity<?> exceptionHandler(RuntimeException runtimeException){
         errors.clear();
         if (runtimeException instanceof IncorrectPasswordException){
@@ -33,6 +35,9 @@ public class ExceptionController {
         }else if (runtimeException instanceof RareCharacterException){
             errors.put("message", new RareCharacterException().getMessage());
             return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
+        }else if (runtimeException instanceof CodeNotExistsException){
+            errors.put("message", new CodeNotExistsException().getMessage());
+            return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
         }
         return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
     }
@@ -41,7 +46,6 @@ public class ExceptionController {
     public ResponseEntity<?> clubExceptions(RuntimeException runtimeException){
         errors.clear();
         if (runtimeException instanceof AlreadyInAClubException){
-            System.out.println("HEY");
             errors.put("message", new AlreadyInAClubException().getMessage());
             return new ResponseEntity<>(errors, HttpStatus.CONFLICT);
         }

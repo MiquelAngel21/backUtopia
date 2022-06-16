@@ -3,6 +3,7 @@ package com.utopiapp.demo.service.implementations;
 import com.utopiapp.demo.dto.LoginDto;
 import com.utopiapp.demo.dto.RegisterDto;
 import com.utopiapp.demo.dto.SetingsDataDto;
+import com.utopiapp.demo.exceptions.CodeNotExistsException;
 import com.utopiapp.demo.exceptions.EmptyFieldsException;
 import com.utopiapp.demo.exceptions.IncorrectPasswordException;
 import com.utopiapp.demo.model.Client;
@@ -10,8 +11,10 @@ import com.utopiapp.demo.model.Club;
 import com.utopiapp.demo.model.File;
 import com.utopiapp.demo.model.Heart;
 import com.utopiapp.demo.repositories.mysql.ClientRepo;
+import com.utopiapp.demo.repositories.mysql.ClubRepo;
 import com.utopiapp.demo.repositories.mysql.FileRepo;
 import com.utopiapp.demo.service.interfaces.ClientService;
+import com.utopiapp.demo.service.interfaces.ClubService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.context.SecurityContext;
@@ -27,16 +30,18 @@ import java.util.*;
 @Service
 public class ClientServiceImpl implements ClientService {
 
+    private final ClubRepo clubRepo;
     private final ClientRepo clientRepo;
     private final PasswordEncoder passwordEncoder;
     private final HttpSession session;
     private final FileRepo fileRepo;
 
-    public ClientServiceImpl(ClientRepo clientRepo, PasswordEncoder passwordEncoder, HttpSession session, FileRepo fileRepo) {
+    public ClientServiceImpl(ClientRepo clientRepo, PasswordEncoder passwordEncoder, HttpSession session, FileRepo fileRepo, ClubRepo clubRepo) {
         this.clientRepo = clientRepo;
         this.passwordEncoder = passwordEncoder;
         this.session = session;
         this.fileRepo = fileRepo;
+        this.clubRepo = clubRepo;
     }
 
 
@@ -201,5 +206,22 @@ public class ClientServiceImpl implements ClientService {
     @Override
     public List<Client> getAllClientsByClub(Club club) {
         return clientRepo.findAllByClub(club);
+    }
+
+    @Override
+    public void removeClubFromClient(Client client) {
+        client.setClub(null);
+        clientRepo.save(client);
+    }
+
+    @Override
+    public String signInClub(Client client, String code) {
+        Club club = clubRepo.findClubByAccessCode(code);
+        if (club == null){
+            throw new CodeNotExistsException();
+        }
+        client.setClub(club);
+        clientRepo.save(client);
+        return club.getName();
     }
 }

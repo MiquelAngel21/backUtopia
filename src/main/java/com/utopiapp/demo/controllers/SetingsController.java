@@ -16,8 +16,11 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @RestController
-@RequestMapping(value = "profile")
+@RequestMapping(value = "/profile")
 public class SetingsController {
     @Autowired
     PasswordEncoder passwordEncoder;
@@ -49,5 +52,25 @@ public class SetingsController {
         Client currentClient = userMain.toClient();
         clientService.updateDataClient(setingsDataDto,currentClient);
         return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @PutMapping(value = "/exit-club")
+    @ResponseBody
+    public ResponseEntity<?> exitClub(Authentication authentication){
+        UserMain userMain = (UserMain) authentication.getPrincipal();
+        Client currentClient = userMain.toClient();
+        clientService.removeClubFromClient(currentClient);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @PutMapping(value = "/signin-club")
+    @ResponseBody
+    public Map<String, String> signInClub(@RequestBody String accesCode, Authentication authentication){
+        UserMain userMain = (UserMain) authentication.getPrincipal();
+        Client currentClient = userMain.toClient();
+        String clubName = clientService.signInClub(currentClient, accesCode);
+        Map<String, String> response = new HashMap<>();
+        response.put("clubName", clubName);
+        return response;
     }
 }
