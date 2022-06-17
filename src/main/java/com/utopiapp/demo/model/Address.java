@@ -26,6 +26,16 @@ public class Address {
     @OneToOne(mappedBy = "address")
     private Club club;
 
+    public Address() {
+    }
+
+    public Address(String zipCode, String street, String city, String number) {
+        this.zipCode = zipCode;
+        this.street = street;
+        this.city = city;
+        this.number = number;
+    }
+
     public Long getId() {
         return id;
     }

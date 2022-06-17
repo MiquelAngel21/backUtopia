@@ -3,6 +3,7 @@ package com.utopiapp.demo.dto;
 import com.utopiapp.demo.model.File;
 
 public class ClubDto {
+    private String id;
     private String name;
     private String email;
     private String cif;
@@ -10,6 +11,24 @@ public class ClubDto {
     private String organization;
     private FileDto logo;
     private FileDto frontPageFile;
+
+    public ClubDto(String name, String email, String cif, String whoAreWe, String organization, FileDto logo, FileDto frontPageFile){
+        this.name = name;
+        this.email = email;
+        this.cif = cif;
+        this.whoAreWe = whoAreWe;
+        this.organization = organization;
+        this.logo = logo;
+        this.frontPageFile = frontPageFile;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
 
     public String getName() {
         return name;

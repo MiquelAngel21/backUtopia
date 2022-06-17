@@ -28,7 +28,7 @@ public class ExceptionController {
             return new ResponseEntity<>(errors, HttpStatus.UNAUTHORIZED);
         } else if (runtimeException instanceof EmptyFieldsException){
             errors.put("message", new EmptyFieldsException().getMessage());
-            return new ResponseEntity<>(errors, HttpStatus.NO_CONTENT);
+            return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
         }else if (runtimeException instanceof UnauthorizedException){
             errors.put("message", new UnauthorizedException().getMessage());
             return new ResponseEntity<>(errors, HttpStatus.UNAUTHORIZED);
@@ -42,7 +42,11 @@ public class ExceptionController {
         return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
     }
 
-    @ExceptionHandler({AlreadyInAClubException.class, AtLeastOneCoordinatorException.class})
+    @ExceptionHandler({AlreadyInAClubException.class,
+            AtLeastOneCoordinatorException.class,
+            ClubNameInUseException.class,
+            ClubEmailInUseException.class
+    })
     public ResponseEntity<?> clubExceptions(RuntimeException runtimeException){
         errors.clear();
         if (runtimeException instanceof AlreadyInAClubException){
@@ -50,6 +54,12 @@ public class ExceptionController {
             return new ResponseEntity<>(errors, HttpStatus.CONFLICT);
         } else if (runtimeException instanceof AtLeastOneCoordinatorException){
             errors.put("message", new AtLeastOneCoordinatorException().getMessage());
+            return new ResponseEntity<>(errors, HttpStatus.CONFLICT);
+        } else if (runtimeException instanceof ClubNameInUseException){
+            errors.put("message", new ClubNameInUseException().getMessage());
+            return new ResponseEntity<>(errors, HttpStatus.CONFLICT);
+        } else if (runtimeException instanceof ClubEmailInUseException){
+            errors.put("message", new ClubEmailInUseException().getMessage());
             return new ResponseEntity<>(errors, HttpStatus.CONFLICT);
         }
         return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);

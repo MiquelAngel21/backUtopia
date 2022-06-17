@@ -38,7 +38,14 @@ public class ClubServiceImpl implements ClubService {
     public Club createClub(ClubWithAddressDto clubWithAddressDto, Client currentClient) {
         Set<Client> clients = new HashSet<>();
         clients.add(currentClient);
+        checkEmptyFields(clubWithAddressDto);
+
         if (clubRepo.findClubByVolunteersIn(clients) == null){
+            if (clubNameAlreadyExists(clubWithAddressDto.getClub().getName())){
+                throw new ClubNameInUseException();
+            } else if (emailClubAlreadyExists(clubWithAddressDto.getClub().getEmail())){
+                throw new ClubEmailInUseException();
+            }
             ClubDto clubDto = clubWithAddressDto.getClub();
             Club club = new Club();
             club.setCif(clubDto.getCif());
@@ -66,9 +73,82 @@ public class ClubServiceImpl implements ClubService {
             Coordinator coordinator = new Coordinator(club, currentClient);
             coordinatorRepo.save(coordinator);
             return club;
+        } else {
+           return updateClub(clubWithAddressDto);
+        }
+    }
+
+    private void checkEmptyFields(ClubWithAddressDto clubWithAddressDto){
+        ClubDto clubDto = clubWithAddressDto.getClub();
+        AddressDto addressDto = clubWithAddressDto.getAddress();
+
+        if ((addressDto.getCity().isEmpty() ||
+                addressDto.getNumber().isEmpty() ||
+                addressDto.getStreet().isEmpty() ||
+                addressDto.getZipCode().isEmpty()
+        )){
+            throw new EmptyFieldsException();
         }
 
-        throw new AlreadyInAClubException();
+        if ((clubDto.getName().isEmpty() ||
+                clubDto.getEmail().isEmpty() ||
+                clubDto.getCif().isEmpty() ||
+                clubDto.getOrganization().isEmpty() ||
+                clubDto.getWhoAreWe().isEmpty())
+        ){
+            throw new EmptyFieldsException();
+        }
+    }
+
+    private Club updateClub(ClubWithAddressDto clubWithAddressDto) {
+        if (emailClubAlreadyExistsWithDifferentId(clubWithAddressDto.getClub().getEmail(),Long.parseLong(clubWithAddressDto.getClub().getId()))){
+            throw new ClubEmailInUseException();
+        } else if (clubNameAlreadyExistsWithDifferentId(clubWithAddressDto.getClub().getName(), Long.parseLong(clubWithAddressDto.getClub().getId()))){
+            throw new ClubNameInUseException();
+        }
+        Club clubToUpdate = clubRepo.findClubById(Long.parseLong(clubWithAddressDto.getClub().getId()));
+        Address address = addressRepo.findByClub(clubToUpdate);
+        clubToUpdate.setCif(clubWithAddressDto.getClub().getCif());
+        clubToUpdate.setEmail(clubWithAddressDto.getClub().getEmail());
+        clubToUpdate.setOrganization(clubWithAddressDto.getClub().getOrganization());
+        clubToUpdate.setWhoAreWe(clubWithAddressDto.getClub().getWhoAreWe());
+        clubToUpdate.setName(clubWithAddressDto.getClub().getName());
+
+        address.setCity(clubWithAddressDto.getAddress().getCity());
+        address.setStreet(clubWithAddressDto.getAddress().getStreet());
+        address.setNumber(clubWithAddressDto.getAddress().getNumber());
+        address.setZipCode(clubWithAddressDto.getAddress().getZipCode());
+        clubToUpdate.setAddress(address);
+        clubRepo.save(clubToUpdate);
+        return clubToUpdate;
+    }
+
+    private boolean emailClubAlreadyExists(String email) {
+        if (clubRepo.findClubByEmail(email) != null){
+            return true;
+        }
+        return false;
+    }
+
+    private boolean emailClubAlreadyExistsWithDifferentId(String email, Long id) {
+        if (clubRepo.findClubByEmailAndIdIsNot(email, id) != null){
+            return true;
+        }
+        return false;
+    }
+
+    private boolean clubNameAlreadyExists(String name) {
+        if (clubRepo.findClubByName(name) != null){
+            return true;
+        }
+        return false;
+    }
+
+    private boolean clubNameAlreadyExistsWithDifferentId(String name, Long id) {
+        if (clubRepo.findClubByNameAndIdIsNot(name, id) != null){
+            return true;
+        }
+        return false;
     }
 
     @Override
@@ -277,6 +357,17 @@ public class ClubServiceImpl implements ClubService {
         return petitionToMap(petition);
     }
 
+    @Override
+    public Club findClubById(Long id) {
+        return clubRepo.findClubById(id);
+    }
+
+    @Override
+    public Address findAddressByClub(Club club) {
+        return addressRepo.findByClub(club);
+    }
+
+
     private boolean checkTimeOfLastPetition(List<Petition> oldPetitions) {
         if (oldPetitions.size() > 0){
             LocalDateTime lastPetitionLocalDateTime = oldPetitions.get(0).getCreatedDate().plusDays(1);
@@ -320,6 +411,18 @@ public class ClubServiceImpl implements ClubService {
         clubInFormatJson.put("petitions", listOfPetitionsToMap(club.getPetitions().stream().toList()));
 
         return clubInFormatJson;
+    }
+
+    @Override
+    public Map<String, Object> convertAddressToMap(Address address) {
+        Map<String, Object> addressMap = new HashMap<>();
+        addressMap.put("id", address.getId());
+        addressMap.put("street", address.getStreet());
+        addressMap.put("city", address.getCity());
+        addressMap.put("number", address.getNumber());
+        addressMap.put("zipCode", address.getZipCode());
+
+        return addressMap;
     }
 
     private List<Map<String, Object>> listOfPetitionsToMap(List<Petition> petitions) {
