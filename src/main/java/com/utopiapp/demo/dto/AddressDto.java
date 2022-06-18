@@ -7,7 +7,8 @@ public class AddressDto {
     private String city;
     private String zipCode;
 
-    public AddressDto(String street, String number, String city, String zipCode){
+    public AddressDto(String id, String street, String number, String city, String zipCode) {
+        this.id = id;
         this.street = street;
         this.number = number;
         this.city = city;
@@ -44,5 +45,13 @@ public class AddressDto {
 
     public void setZipCode(String zipCode) {
         this.zipCode = zipCode;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 }

@@ -103,9 +103,9 @@ public class ClientServiceImpl implements ClientService {
     }
 
     @Override
-    public void noRareCharactersInText(String text){
-        String newText = text.replaceAll("['*\\-\"\\\\/\\[\\]?¿!¡<>=%()&|#$¬~·ºª]*", "");
-        if (!newText.equals(text)){
+    public void noRareCharactersInText(String text) {
+        String newText = text.replaceAll("[*\\-\"\\\\/\\[\\]<>=%&|#$¬~·]*", "");
+        if (!newText.equals(text)) {
             throw new RareCharacterException();
         }
     }

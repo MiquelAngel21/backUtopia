@@ -84,7 +84,8 @@ public class ExceptionController {
     @ExceptionHandler({AlreadyInAClubException.class,
             AtLeastOneCoordinatorException.class,
             ClubNameInUseException.class,
-            ClubEmailInUseException.class
+            ClubEmailInUseException.class,
+            ClubCifInUseException.class
     })
     public ResponseEntity<?> clubExceptions(RuntimeException runtimeException){
         errors.clear();
@@ -99,6 +100,19 @@ public class ExceptionController {
             return new ResponseEntity<>(errors, HttpStatus.CONFLICT);
         } else if (runtimeException instanceof ClubEmailInUseException){
             errors.put("message", new ClubEmailInUseException().getMessage());
+            return new ResponseEntity<>(errors, HttpStatus.CONFLICT);
+        } else if (runtimeException instanceof ClubCifInUseException){
+            errors.put("message", new ClubCifInUseException().getMessage());
+            return new ResponseEntity<>(errors, HttpStatus.CONFLICT);
+        }
+        return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler({ActivityNameInUseException.class})
+    public ResponseEntity<?> activitiesException(RuntimeException runtimeException){
+        errors.clear();
+        if (runtimeException instanceof ActivityNameInUseException){
+            errors.put("message", new ActivityNameInUseException().getMessage());
             return new ResponseEntity<>(errors, HttpStatus.CONFLICT);
         }
         return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);

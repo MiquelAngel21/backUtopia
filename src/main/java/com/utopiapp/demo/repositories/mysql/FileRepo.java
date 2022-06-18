@@ -10,4 +10,5 @@ public interface FileRepo extends JpaRepository<File, Long> {
     Optional<File> findById(Long id);
     File findFileByClient_id(Long clientId);
     List<File> findAllByContent(byte[] content);
+    List<File> findAllByClub_id(Long id);
 }

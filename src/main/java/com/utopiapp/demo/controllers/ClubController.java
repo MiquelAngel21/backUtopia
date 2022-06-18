@@ -40,7 +40,7 @@ public class ClubController {
             Authentication authentication
     ){
         UserMain userMain = (UserMain) authentication.getPrincipal();
-        return clubService.createClub(clubWithAddressDto, userMain.toClient());
+        return clubService.createClub(clubWithAddressDto, userMain.toClient(), false);
     }
 
     @GetMapping(value = "/clubs", produces = {"application/json"})
@@ -94,7 +94,7 @@ public class ClubController {
         if (!currentUser.getCoordinator().getClub().getName().equals(clubToUpdate.getName())){
             throw new UnauthorizedException();
         }
-        Address address = clubService.findAddressByClub(clubToUpdate);
+        Address address = clubService.findAddressByClub(clubToUpdate.getId());
         clubAndAddress.put("club",clubService.convertClubToMap(clubToUpdate));
         clubAndAddress.put("address",clubService.convertAddressToMap(address));
 
@@ -108,8 +108,10 @@ public class ClubController {
             Authentication authentication
     ){
         UserMain userMain = (UserMain) authentication.getPrincipal();
-        Club clubUpdated = clubService.createClub(clubWithAddressDto, userMain.toClient());
-        return new ResponseEntity<>(HttpStatus.OK);
+        clubService.updateClub(clubWithAddressDto, userMain.toClient());
+        Map<String, Boolean> success = new HashMap<>();
+        success.put("sucess", true);
+        return new ResponseEntity<>(success, HttpStatus.CREATED);
     }
 
     @GetMapping(value = "/club/coordinators/{clubId}", produces = {"application/json"})

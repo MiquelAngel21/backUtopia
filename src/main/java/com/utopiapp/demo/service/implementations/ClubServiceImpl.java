@@ -35,19 +35,26 @@ public class ClubServiceImpl implements ClubService {
     }
 
     @Override
-    public Club createClub(ClubWithAddressDto clubWithAddressDto, Client currentClient) {
+    public Club createClub(ClubWithAddressDto clubWithAddressDto, Client currentClient, Boolean fromUpdate) {
         Set<Client> clients = new HashSet<>();
         clients.add(currentClient);
         checkEmptyFields(clubWithAddressDto);
-
-        if (clubRepo.findClubByVolunteersIn(clients) == null){
-            if (clubNameAlreadyExists(clubWithAddressDto.getClub().getName())){
+        Club clubAlreadyExists = clubRepo.findClubByVolunteersIn(clients);
+        if (fromUpdate || clubAlreadyExists == null){
+            if (clubNameAlreadyExists(clubWithAddressDto.getClub().getName(), currentClient, fromUpdate)){
                 throw new ClubNameInUseException();
-            } else if (emailClubAlreadyExists(clubWithAddressDto.getClub().getEmail())){
+            }
+            if (emailClubAlreadyExists(clubWithAddressDto.getClub().getEmail(), currentClient, fromUpdate)){
                 throw new ClubEmailInUseException();
+            }
+            if (cifClubAlreadyExists(clubWithAddressDto.getClub().getCif(), currentClient, fromUpdate)){
+                throw new ClubCifInUseException();
             }
             ClubDto clubDto = clubWithAddressDto.getClub();
             Club club = new Club();
+            if (clubDto.getId() != null){
+                club.setId(Long.parseLong(clubDto.getId()));
+            }
             club.setCif(clubDto.getCif());
             club.setCreateDate(LocalDate.now());
             club.setAccessCode(createAccessCode());
@@ -67,20 +74,42 @@ public class ClubServiceImpl implements ClubService {
 
             clientService.save(currentClient);
 
-            Set<File> clubFiles = handleImages(clubDto.getLogo(), clubDto.getFrontPageFile(), club);
+            Set<File> clubFiles = handleImages(clubDto, club);
             club.setFiles(clubFiles);
 
             Coordinator coordinator = new Coordinator(club, currentClient);
-            coordinatorRepo.save(coordinator);
+            if (coordinatorRepo.findCoordinatorByPerson_id(currentClient.getId()) == null){
+                coordinatorRepo.save(coordinator);
+            }
+
             return club;
         } else {
-           return updateClub(clubWithAddressDto);
+            throw new AlreadyInAClubException();
         }
     }
+
+    private void fileOnlyTypeImage(FileDto file) {
+        if (file.getMediaType() != null && !file.getMediaType().contains("image")){
+            throw new InvalidImageException();
+        }
+    }
+
 
     private void checkEmptyFields(ClubWithAddressDto clubWithAddressDto){
         ClubDto clubDto = clubWithAddressDto.getClub();
         AddressDto addressDto = clubWithAddressDto.getAddress();
+
+        noRareCharactersInText(clubDto.getEmail());
+        noRareCharactersInText(clubDto.getName());
+        noRareCharactersInText(clubDto.getCif());
+
+        fileOnlyTypeImage(clubDto.getLogo());
+        fileOnlyTypeImage(clubDto.getFrontPageFile());
+
+        noRareCharactersInText(addressDto.getCity());
+        noRareCharactersInText(addressDto.getStreet());
+        noRareCharactersInText(addressDto.getZipCode());
+        noRareCharactersInText(addressDto.getNumber());
 
         if ((addressDto.getCity().isEmpty() ||
                 addressDto.getNumber().isEmpty() ||
@@ -100,46 +129,53 @@ public class ClubServiceImpl implements ClubService {
         }
     }
 
-    private Club updateClub(ClubWithAddressDto clubWithAddressDto) {
-        if (emailClubAlreadyExistsWithDifferentId(clubWithAddressDto.getClub().getEmail(),Long.parseLong(clubWithAddressDto.getClub().getId()))){
-            throw new ClubEmailInUseException();
-        } else if (clubNameAlreadyExistsWithDifferentId(clubWithAddressDto.getClub().getName(), Long.parseLong(clubWithAddressDto.getClub().getId()))){
-            throw new ClubNameInUseException();
+    public void noRareCharactersInText(String text) {
+        String newText = text.replaceAll("[*\\-\"\\\\/\\[\\]<>=%&|#$¬~]*", "");
+        if (!newText.equals(text)) {
+            throw new RareCharacterException();
         }
-        Club clubToUpdate = clubRepo.findClubById(Long.parseLong(clubWithAddressDto.getClub().getId()));
-        Address address = addressRepo.findByClub(clubToUpdate);
-        clubToUpdate.setCif(clubWithAddressDto.getClub().getCif());
-        clubToUpdate.setEmail(clubWithAddressDto.getClub().getEmail());
-        clubToUpdate.setOrganization(clubWithAddressDto.getClub().getOrganization());
-        clubToUpdate.setWhoAreWe(clubWithAddressDto.getClub().getWhoAreWe());
-        clubToUpdate.setName(clubWithAddressDto.getClub().getName());
-
-        address.setCity(clubWithAddressDto.getAddress().getCity());
-        address.setStreet(clubWithAddressDto.getAddress().getStreet());
-        address.setNumber(clubWithAddressDto.getAddress().getNumber());
-        address.setZipCode(clubWithAddressDto.getAddress().getZipCode());
-        clubToUpdate.setAddress(address);
-        clubRepo.save(clubToUpdate);
-        return clubToUpdate;
     }
 
-    private boolean emailClubAlreadyExists(String email) {
-        if (clubRepo.findClubByEmail(email) != null){
-            return true;
+    public Club updateClub(ClubWithAddressDto clubWithAddressDto, Client currentClient) {
+        if (currentClient.getCoordinator() == null
+                || currentClient.getCoordinator().getClub().getId() != Long.parseLong(clubWithAddressDto.getClub().getId())){
+            throw new NotCoordinatorException();
+        }
+        return createClub(clubWithAddressDto, currentClient, true);
+    }
+
+    private boolean emailClubAlreadyExists(String email, Client currentClient, Boolean fromUpdate) {
+        boolean solution = false;
+        if (currentClient.getClub() != null){
+            solution = currentClient.getClub().getEmail().equals(email);
+        }
+        if (!solution){
+            Club club = clubRepo.findClubByEmail(email);
+            return club != null;
         }
         return false;
     }
 
-    private boolean emailClubAlreadyExistsWithDifferentId(String email, Long id) {
-        if (clubRepo.findClubByEmailAndIdIsNot(email, id) != null){
-            return true;
+    private boolean cifClubAlreadyExists(String cif, Client currentClient, Boolean fromUpdate) {
+        boolean solution = false;
+        if (currentClient.getClub() != null){
+            solution = currentClient.getClub().getCif().equals(cif);
+        }
+        if (!solution){
+            Club club = clubRepo.findClubByCif(cif);
+            return club != null;
         }
         return false;
     }
 
-    private boolean clubNameAlreadyExists(String name) {
-        if (clubRepo.findClubByName(name) != null){
-            return true;
+    private boolean clubNameAlreadyExists(String name, Client client, boolean fromUpdate) {
+        boolean solution = false;
+        if (client.getClub() != null){
+           solution = client.getClub().getName().equals(name);
+        }
+        if (!solution){
+            Club club = clubRepo.findClubByName(name);
+            return club != null;
         }
         return false;
     }
@@ -363,8 +399,8 @@ public class ClubServiceImpl implements ClubService {
     }
 
     @Override
-    public Address findAddressByClub(Club club) {
-        return addressRepo.findByClub(club);
+    public Address findAddressByClub(Long clubId) {
+        return addressRepo.findAddressByClub_id(clubId);
     }
 
 
@@ -485,6 +521,9 @@ public class ClubServiceImpl implements ClubService {
 
     private Address createAddressByAddressDto(AddressDto addressDto) {
         Address address = new Address();
+        if (addressDto.getId() != null){
+            address.setId(Long.parseLong(addressDto.getId()));
+        }
         address.setCity(addressDto.getCity());
         address.setNumber(addressDto.getNumber());
         address.setStreet(addressDto.getStreet());
@@ -493,7 +532,20 @@ public class ClubServiceImpl implements ClubService {
         return addressRepo.save(address);
     }
 
-    private Set<File> handleImages(FileDto logoDto, FileDto frontPageFileDto, Club club) {
+    private Set<File> handleImages(ClubDto clubDto, Club club) {
+
+        if (clubDto.getId() != null){
+            List<File> alreadyExistsFiles = fileRepo.findAllByClub_id(Long.parseLong(clubDto.getId()));
+            if (alreadyExistsFiles != null && alreadyExistsFiles.size() > 0){
+                for (File file : alreadyExistsFiles){
+                    fileRepo.delete(file);
+                }
+            }
+        }
+
+        FileDto logoDto = clubDto.getLogo();
+        FileDto frontPageFileDto = clubDto.getFrontPageFile();
+
         logoDto.setName("logo_"+logoDto.getName());
         frontPageFileDto.setName("frontPage_"+frontPageFileDto.getName());
 

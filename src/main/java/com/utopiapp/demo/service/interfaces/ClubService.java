@@ -13,13 +13,14 @@ import java.util.List;
 import java.util.Map;
 
 public interface ClubService {
-    Club createClub(ClubWithAddressDto clubWithAddressDto, Client toClient);
+    Club createClub(ClubWithAddressDto clubWithAddressDto, Client toClient, Boolean fromUpdate);
+    Club updateClub(ClubWithAddressDto clubWithAddressDto, Client currentClient);
     Map<String, Object> getPaginatedClubs(String name, int start, int length);
     Map<String, Object> createNewPetition(Long clubId, DescriptionPetitionDto descriptionPetitionDto, Client toClient);
 
     Club findClubById(Long id);
 
-    Address findAddressByClub(Club club);
+    Address findAddressByClub(Long clubId);
 
     Map<String, Object> getClubById(Long id);
 

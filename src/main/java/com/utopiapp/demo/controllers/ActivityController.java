@@ -8,13 +8,12 @@ import com.utopiapp.demo.model.Client;
 import com.utopiapp.demo.model.Tag;
 import com.utopiapp.demo.model.UserMain;
 import com.utopiapp.demo.service.interfaces.ActivityService;
-import com.utopiapp.demo.service.interfaces.ClientService;
-import com.utopiapp.demo.service.interfaces.ClubService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -89,14 +88,10 @@ public class ActivityController {
             @PathVariable Long id,
             Authentication authentication
     ) {
-        try {
-            Activity activity = new Activity();
-            UserMain userMain = (UserMain) authentication.getPrincipal();
-            activityService.updateAnExistingActivity(id, activity, activityDto, userMain);
-            return new ResponseEntity<>("Activitat editada correctament!", HttpStatus.OK);
-        } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.CONFLICT);
-        }
+        Activity activity = new Activity();
+        UserMain userMain = (UserMain) authentication.getPrincipal();
+        activityService.updateAnExistingActivity(id, activity, activityDto, userMain);
+        return new ResponseEntity<>("Activitat editada correctament!", HttpStatus.OK);
     }
 
     @DeleteMapping(value = "/activities/{id}", produces = {"application/json"})
@@ -107,7 +102,9 @@ public class ActivityController {
     ) {
         UserMain userMain = (UserMain) authentication.getPrincipal();
         activityService.deleteActivity(id, userMain);
-        return new ResponseEntity<>(new Message("Activitat esborrada amb èxit!"), HttpStatus.NO_CONTENT);
+        Map<String, Boolean> deletedSuccessfully = new HashMap<>();
+        deletedSuccessfully.put("success", true);
+        return new ResponseEntity<>(deletedSuccessfully, HttpStatus.CREATED);
     }
 
     @GetMapping(value = "/manage-like/{id}", produces = {"application/json"})

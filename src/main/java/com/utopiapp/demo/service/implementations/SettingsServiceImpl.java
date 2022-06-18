@@ -66,7 +66,6 @@ public class SettingsServiceImpl implements SettingsService {
     }
 
     private void updateClientCheckExcpetions(SettingsDataDto settingsDataDto, Client currentClient) {
-
         noRareCharactersInText(settingsDataDto.getEmail());
         noRareCharactersInText(settingsDataDto.getLastname());
         noRareCharactersInText(settingsDataDto.getName());
@@ -101,9 +100,9 @@ public class SettingsServiceImpl implements SettingsService {
         }
     }
 
-    private void noRareCharactersInText(String text){
-        String newText = text.replaceAll("['*\\-\"\\\\/\\[\\]?¿!¡<>=%()&|#$¬~]*", "");
-        if (!newText.equals(text)){
+    private void noRareCharactersInText(String text) {
+        String newText = text.replaceAll("[*\\-\"\\\\/\\[\\]<>=%&|#$¬~·]*", "");
+        if (!newText.equals(text)) {
             throw new RareCharacterException();
         }
     }

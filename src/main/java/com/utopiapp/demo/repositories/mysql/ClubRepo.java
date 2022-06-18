@@ -22,6 +22,6 @@ public interface ClubRepo extends JpaRepository<Club, Long> {
     Club findClubByName(String name);
     Club findClubByNameAndIdIsNot(String name, Long id);
     Club findClubByEmail(String name);
-    Club findClubByEmailAndIdIsNot(String name, Long id);
+    Club findClubByCif(String cif);
 
 }

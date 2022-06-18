@@ -31,6 +31,6 @@ public interface ActivityRepo extends JpaRepository<Activity, Long> {
     Activity findActivityById(Long id);
     Activity findActivityByName(String name);
     Activity findActivityByClientAndId(Client currentUser, Long id);
-    List<Activity> findActivitiesByClient(Client client);
+    Boolean existsByName(String name);
 
 }

@@ -63,6 +63,9 @@ public class ActivityServiceImpl implements ActivityService {
     private void validateFieldsOfActivity(ActivityDto activityDto) {
         noRareCharactersInText(activityDto.getName());
         noRareCharactersInText(activityDto.getDescription());
+        if (activityRepoMysql.existsByName(activityDto.getName())){
+            throw new ActivityNameInUseException();
+        }
         for (Tag tag : activityDto.getTags()){
             if (!tagRepoMysql.existsByName(tag.getName())){
                 throw new TagNoExists();
@@ -100,7 +103,7 @@ public class ActivityServiceImpl implements ActivityService {
     }
 
     public void noRareCharactersInText(String text) {
-        String newText = text.replaceAll("['*\\-\"\\\\/\\[\\]?¿!¡<>=%()&|#$¬~·ºª]*", "");
+        String newText = text.replaceAll("[*\\-\"\\\\/\\[\\]<>=%&|#$¬~·]*", "");
         if (!newText.equals(text)) {
             throw new RareCharacterException();
         }
@@ -112,6 +115,9 @@ public class ActivityServiceImpl implements ActivityService {
             throw new EmptyFieldsException();
         }
         activity.setId(id);
+        if (!isOwner(userMain.toClient(), id)){
+            throw new UnauthorizedException();
+        }
         createNewActivity(activity, activityDto, userMain, true);
     }
 

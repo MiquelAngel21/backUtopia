@@ -5,5 +5,5 @@ import com.utopiapp.demo.model.Club;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface AddressRepo extends JpaRepository<Address, Long> {
-    Address findByClub(Club club);
+    Address findAddressByClub_id(Long clubId);
 }
