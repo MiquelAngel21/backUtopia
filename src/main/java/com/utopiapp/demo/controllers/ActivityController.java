@@ -43,7 +43,7 @@ public class ActivityController {
             Authentication authentication
     ) {
         UserMain userMain = (UserMain) authentication.getPrincipal();
-        return activityService.getActivitiesByUserAndMostRecentDate(userMain.getId());
+        return activityService.getActivitiesByUserAndMostRecentDate(userMain.toClient());
     }
 
     @GetMapping(value = "/new-activity", produces = {"application/json"})
@@ -59,15 +59,14 @@ public class ActivityController {
 
     @PostMapping(value = "/new-activity", produces = {"application/json"})
     @ResponseBody
-    public ResponseEntity<?> createActivity(
+    public Map<String, Object> createActivity(
             @RequestBody ActivityDto activityDto,
             Authentication authentication
     ) {
-
-            Activity activity = new Activity();
-            UserMain userMain = (UserMain) authentication.getPrincipal();
-            return new ResponseEntity<>(activityService.createNewActivity(activity, activityDto, userMain, false), HttpStatus.OK);
-
+        Activity activity = new Activity();
+        UserMain userMain = (UserMain) authentication.getPrincipal();
+        activity = activityService.createNewActivity(activity, activityDto, userMain, false);
+        return activityService.createActivityJson(activity, userMain.toClient());
     }
 
     @GetMapping(value = "/activities/{id}", produces = {"application/json"})
@@ -78,22 +77,8 @@ public class ActivityController {
     ) {
         UserMain userMain = (UserMain) authentication.getPrincipal();
         Client client = userMain.toClient();
-        List<Tag> tags = activityService.getAllTags();
+        Map<String, Object> viewActivityDataJson = activityService.getActivityDataJson(id, client);
 
-        Map<String, Object> viewActivityDataJson = activityService.getActivityDataJson(id);
-        viewActivityDataJson.put("tags", tags);
-
-        Activity activity = activityService.getActivityById(id);
-        boolean isOwner = activityService.isOwner(client, activity.getId());
-        viewActivityDataJson.put("isOwner", isOwner);
-
-        Client activityCreator = activity.getClient();
-        viewActivityDataJson.put("ownerName", activityCreator.getName() + " " + activityCreator.getLastname());
-        viewActivityDataJson.put("ownerDescription", activityCreator.getDescription());
-        viewActivityDataJson.put("ownerEmail", activityCreator.getEmail());
-        viewActivityDataJson.put("ownerClubName", activityCreator.getClub().getName());
-        viewActivityDataJson.put("ownerTotalLikes", activityCreator.getHearts().size());
-        viewActivityDataJson.put("ownerTotalActivities", activityCreator.getActivities().size());
         return viewActivityDataJson;
     }
 

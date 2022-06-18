@@ -1,10 +1,7 @@
 package com.utopiapp.demo.service.implementations;
 
 import com.utopiapp.demo.dto.ActivityDto;
-import com.utopiapp.demo.dto.FileDto;
-import com.utopiapp.demo.exceptions.EmptyFieldsException;
-import com.utopiapp.demo.exceptions.RareCharacterException;
-import com.utopiapp.demo.exceptions.UnauthorizedException;
+import com.utopiapp.demo.exceptions.*;
 import com.utopiapp.demo.jwt.JwtProvider;
 import com.utopiapp.demo.model.*;
 import com.utopiapp.demo.repositories.mysql.*;
@@ -45,16 +42,14 @@ public class ActivityServiceImpl implements ActivityService {
     }
 
     @Override
-    public List<Map<String, Object>> getActivitiesByUserAndMostRecentDate(Long clientId) {
-        List<Activity> activities = activityRepoMysql.findAllByClientOrderByCreatedDateDesc(clientService.getClientById(clientId));
-        return convertActivityListIntoJsonList(activities);
+    public List<Map<String, Object>> getActivitiesByUserAndMostRecentDate(Client client) {
+        List<Activity> activities = activityRepoMysql.findAllByClientOrderByCreatedDateDesc(clientService.getClientById(client.getId()));
+        return convertActivityListIntoJsonList(activities, client);
     }
 
     @Override
     public Activity createNewActivity(Activity activity, ActivityDto activityDto, UserMain userMain, boolean isUpdate) {
-        if ((activityDto.getName().isEmpty() || activityDto.getDescription().isEmpty()) || activityDto.getTags().isEmpty()){
-            throw new EmptyFieldsException();
-        }
+        validateFieldsOfActivity(activityDto);
         activity.setName(activityDto.getName());
         activity.setDescription(activityDto.getDescription());
         activity.setCreatedDate(LocalDateTime.now());
@@ -63,6 +58,27 @@ public class ActivityServiceImpl implements ActivityService {
         addMaterialsToActivity(activity, activityDto);
         activity = activityRepoMysql.save(activity);
         return activity;
+    }
+
+    private void validateFieldsOfActivity(ActivityDto activityDto) {
+        noRareCharactersInText(activityDto.getName());
+        noRareCharactersInText(activityDto.getDescription());
+        for (Tag tag : activityDto.getTags()){
+            if (!tagRepoMysql.existsByName(tag.getName())){
+                throw new TagNoExists();
+            }
+            noRareCharactersInText(tag.getName());
+        }
+        for (Material material : activityDto.getMaterials()){
+            noRareCharactersInText(material.getName());
+            material.setName(material.getName().trim());
+            if (material.getAmount() < 0){
+                throw new NegativeAmountException();
+            }
+        }
+        if (activityDto.getName().isEmpty() || activityDto.getDescription().isEmpty() || activityDto.getTags().isEmpty()){
+            throw new EmptyFieldsException();
+        }
     }
 
     private void addMaterialsToActivity(Activity activity, ActivityDto activityDto) {
@@ -84,7 +100,7 @@ public class ActivityServiceImpl implements ActivityService {
     }
 
     public void noRareCharactersInText(String text) {
-        String newText = text.replaceAll("['*\\-\"\\\\/\\[\\]?¿!¡<>=]*", "");
+        String newText = text.replaceAll("['*\\-\"\\\\/\\[\\]?¿!¡<>=%()&|#$¬~·ºª]*", "");
         if (!newText.equals(text)) {
             throw new RareCharacterException();
         }
@@ -111,16 +127,16 @@ public class ActivityServiceImpl implements ActivityService {
     }
 
     @Override
-    public Map<String, Object> getOneActivityById(Long id) {
+    public Map<String, Object> getOneActivityById(Long id, Client currentClient) {
         Activity activity = activityRepoMysql.findActivityById(id);
-        return createActivityJson(activity);
+        return createActivityJson(activity, currentClient);
     }
 
     @Override
-    public List<Map<String, Object>> convertActivityListIntoJsonList(List<Activity> activities) {
+    public List<Map<String, Object>> convertActivityListIntoJsonList(List<Activity> activities, Client currentClient) {
         List<Map<String, Object>> allActivitiesJson = new ArrayList<>();
         for (Activity activity : activities) {
-            allActivitiesJson.add(createActivityJson(activity));
+            allActivitiesJson.add(createActivityJson(activity, currentClient));
         }
         return allActivitiesJson;
     }
@@ -140,7 +156,7 @@ public class ActivityServiceImpl implements ActivityService {
         if (!isLiked) {
             likeActivity(currentClient, activity);
         }
-        return createActivityJson(activity);
+        return createActivityJson(activity, currentClient);
     }
 
     private void likeActivity(Client currentClient, Activity activity) {
@@ -194,7 +210,7 @@ public class ActivityServiceImpl implements ActivityService {
         }
 
         long total = pageResult.getTotalElements();
-        List<Map<String, Object>> data = convertActivityListIntoJsonList(pageResult.getContent());
+        List<Map<String, Object>> data = convertActivityListIntoJsonList(pageResult.getContent(), client);
 
         Map<String, Object> json = new HashMap<>();
         json.put("data", data);
@@ -246,7 +262,8 @@ public class ActivityServiceImpl implements ActivityService {
         return activityRepoMysql.findAllByNameLikeOrderByCreatedDateDescIdDesc(filteredText, paging);
     }
 
-    private Map<String, Object> createActivityJson(Activity activity) {
+    @Override
+    public Map<String, Object> createActivityJson(Activity activity, Client currentClient) {
         Map<String, Object> activityJson = new HashMap<>();
         activityJson.put("id", activity.getId());
         activityJson.put("name", activity.getName());
@@ -256,7 +273,12 @@ public class ActivityServiceImpl implements ActivityService {
         activityJson.put("tags", activity.getTags());
         activityJson.put("materials", activity.getMaterials());
         activityJson.put("hearts", heartsToJson(activity.getHearts()));
+        activityJson.put("liked", isLiked(activity, currentClient));
         return activityJson;
+    }
+
+    private Boolean isLiked(Activity activity, Client currentClient) {
+        return heartRepoMysql.existsByClientAndActivity(currentClient, activity);
     }
 
     @Override
@@ -272,17 +294,50 @@ public class ActivityServiceImpl implements ActivityService {
     }
 
     @Override
-    public Map<String, Object> getActivityDataJson(Long id) {
+    public Map<String, Object> getActivityDataJson(Long id, Client currentClient) {
         Map<String, Object> jsonData = new HashMap<>();
         Activity activity = getActivityById(id);
+
         Set<Activity> activities = new HashSet<>();
         activities.add(activity);
+        jsonData.put("activity", createActivityJson(activity, currentClient));
+
         List<Material> materials = materialRepoMysql.getMaterialsByActivities_Id(id);
-        List<Tag> tags = tagRepoMysql.findByActivitiesIn(activities);
-        jsonData.put("activity", createActivityJson(activity));
         jsonData.put("materials", materials);
+
+        List<Tag> tags = tagRepoMysql.findByActivitiesIn(activities);
         jsonData.put("activity_tags", tags);
+
+        tags = tagRepoMysql.findAll();
+        jsonData.put("tags", tags);
+        boolean isOwner = isOwner(currentClient, activity.getId());
+        jsonData.put("isOwner", isOwner);
+
+        Client activityCreator = clientService.getClientById(activity.getClient().getId());
+        onwerPropertiesMap(activityCreator, jsonData);
         return jsonData;
+    }
+
+    private void onwerPropertiesMap(Client activityCreator, Map<String, Object> jsonData) {
+        jsonData.put("ownerName", activityCreator.getName() + " " + activityCreator.getLastname());
+        jsonData.put("ownerDescription", activityCreator.getDescription());
+        jsonData.put("ownerEmail", activityCreator.getEmail());
+        if (activityCreator.getClub() != null){
+            jsonData.put("ownerClubName", activityCreator.getClub().getName());
+        } else {
+            jsonData.put("ownerClubName", "");
+        }
+
+        jsonData.put("ownerTotalLikes", getAllLikesOfActivivitiesOfUser(activityCreator));
+        jsonData.put("ownerTotalActivities", activityCreator.getActivities().size());
+    }
+
+    private int getAllLikesOfActivivitiesOfUser(Client activityCreator) {
+        int total = 0;
+        for (Activity activity : activityCreator.getActivities()){
+            total += activity.getHearts().size();
+        }
+        return total;
     }
 
     @Override

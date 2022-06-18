@@ -16,4 +16,7 @@ public interface ClientRepo extends JpaRepository<Client, Long> {
     Page<Client> findAllByClubOrderByCreatedDateDesc(Club club, Pageable pageable);
     Client findClientById(Long id);
     Page<Client> findAllByNameLikeAndClubOrderByCreatedDateDesc(String filter, Club club, Pageable pageable);
+    boolean existsClientByEmail(String email);
+    boolean existsClientByUsername(String username);
+    Client findClientByUsername(String username);
 }

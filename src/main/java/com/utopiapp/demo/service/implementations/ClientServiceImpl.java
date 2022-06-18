@@ -1,8 +1,10 @@
 package com.utopiapp.demo.service.implementations;
 
+import com.google.gson.Gson;
+import com.utopiapp.demo.dto.GithubCodeDto;
 import com.utopiapp.demo.dto.LoginDto;
+import com.utopiapp.demo.dto.PasswordsSettingsDto;
 import com.utopiapp.demo.dto.RegisterDto;
-import com.utopiapp.demo.dto.SetingsDataDto;
 import com.utopiapp.demo.exceptions.*;
 import com.utopiapp.demo.model.*;
 import com.utopiapp.demo.repositories.mysql.ClientRepo;
@@ -10,18 +12,22 @@ import com.utopiapp.demo.repositories.mysql.ClubRepo;
 import com.utopiapp.demo.repositories.mysql.CoordinatorRepo;
 import com.utopiapp.demo.repositories.mysql.FileRepo;
 import com.utopiapp.demo.service.interfaces.ClientService;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.util.EntityUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
-import org.springframework.security.oauth2.core.OAuth2AuthenticatedPrincipal;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpSession;
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -79,6 +85,12 @@ public class ClientServiceImpl implements ClientService {
 
     @Override
     public void verifyRegisterFormInformation(RegisterDto registerDto) {
+        if (clientRepo.existsClientByEmail(registerDto.getEmail())){
+            throw new EmailAlreadyExistsException();
+        } else if (clientRepo.existsClientByUsername(registerDto.getUsername())){
+            throw new UsernameAlreadyExistsException();
+        }
+
         noRareCharactersInText(registerDto.getEmail());
         noRareCharactersInText(registerDto.getPassword());
         noRareCharactersInText(registerDto.getLastname());
@@ -92,23 +104,19 @@ public class ClientServiceImpl implements ClientService {
 
     @Override
     public void noRareCharactersInText(String text){
-        String newText = text.replaceAll("['*\\-\"\\\\/\\[\\]?¿!¡<>=]*", "");
+        String newText = text.replaceAll("['*\\-\"\\\\/\\[\\]?¿!¡<>=%()&|#$¬~·ºª]*", "");
         if (!newText.equals(text)){
-            throw new RuntimeException("No rare characters");
+            throw new RareCharacterException();
         }
     }
 
     @Override
     public void verifyLoginFormInformation(LoginDto loginDTO) {
-
-    }
-
-    @Override
-    public Map<String, Object> getUserAttributes() {
-        SecurityContext sc = (SecurityContext) session.getAttribute("SPRING_SECURITY_CONTEXT");
-        OAuth2AuthenticationToken token = (OAuth2AuthenticationToken) sc.getAuthentication();
-        OAuth2AuthenticatedPrincipal principal = token.getPrincipal();
-        return principal.getAttributes();
+        noRareCharactersInText(loginDTO.getEmail());
+        noRareCharactersInText(loginDTO.getPassword());
+        if (loginDTO.getEmail().equals("") || loginDTO.getPassword().equals("")){
+            throw new EmptyFieldsException();
+        }
     }
 
     @Override
@@ -157,7 +165,7 @@ public class ClientServiceImpl implements ClientService {
         Map<String, Object> activityJson = new HashMap<>();
         activityJson.put("id", activity.getId());
         activityJson.put("name", activity.getName());
-        activityJson.put("createdDate", activity.getCreatedDate());
+        activityJson.put("createdDate", activity.getCreatedDate().toString());
         return activityJson;
     }
 
@@ -167,40 +175,6 @@ public class ClientServiceImpl implements ClientService {
         coordinatorHashMap.put("club", coordinator.getClub().getId());
         coordinatorHashMap.put("person", coordinator.getPerson().getId());
         return coordinatorHashMap;
-    }
-
-    @Override
-    public void updateDataClient(SetingsDataDto setingsDataDto, Client currentClient) {
-        if (setingsDataDto.getUpdatingPassword().equals("false")){
-            if (!passwordEncoder.matches(setingsDataDto.getConfirmPassword1(), currentClient.getPassword())){
-                throw new IncorrectPasswordException();
-            }
-            if (setingsDataDto.getName().equals("") || setingsDataDto.getLastname().equals("") || setingsDataDto.getEmail().equals("") || setingsDataDto.getUsername().equals("")){
-                throw new EmptyFieldsException();
-            }
-        } else {
-            if (!passwordEncoder.matches(setingsDataDto.getConfirmPassword2(), currentClient.getPassword())){
-                throw new IncorrectPasswordException();
-            }
-            if (setingsDataDto.getNewPassword().equals("") || setingsDataDto.getRepeatPassword().equals("")){
-                throw new EmptyFieldsException();
-            }
-            if (!(setingsDataDto.getNewPassword()).equals(setingsDataDto.getRepeatPassword())
-                    || (passwordEncoder.matches(setingsDataDto.getNewPassword(), currentClient.getPassword()))){
-                throw new IncorrectPasswordException();
-            }
-        }
-
-       if (setingsDataDto.getUpdatingPassword().equals("false")){
-           currentClient.setName(setingsDataDto.getName());
-           currentClient.setEmail(setingsDataDto.getEmail());
-           currentClient.setLastname(setingsDataDto.getLastname());
-           currentClient.setUsername(setingsDataDto.getUsername());
-           currentClient.setDescription(setingsDataDto.getDescription());
-       } else {
-           currentClient.setPassword(passwordEncoder.encode(setingsDataDto.getNewPassword()));
-       }
-        clientRepo.save(currentClient);
     }
 
     private Object heartsToJsonFormat(Set<Heart> hearts) {
@@ -268,17 +242,20 @@ public class ClientServiceImpl implements ClientService {
 
     @Override
     public Boolean isCoordinator(Client client) {
-        return coordinatorRepo.existsCoordinatorByPersonAndClub(client, client.getCoordinator().getClub());
+        return client.getCoordinator() != null;
     }
 
     @Override
-    public void deleteVolunteerFromClub(Long volunteerId) {
+    public Club deleteVolunteerFromClub(Long volunteerId) {
         Client client = clientRepo.findClientById(volunteerId);
         Club club = client.getClub();
         Set<Client> allVolunteers = club.getVolunteers();
 
         if(allVolunteers.size() == 1){
             clubRepo.delete(club);
+            client.setClub(null);
+            clientRepo.save(client);
+            return null;
         } else {
             Set<Client> newListOfVolunteers = new HashSet<>();
             boolean atLeastOneCoordinator = false;
@@ -305,6 +282,111 @@ public class ClientServiceImpl implements ClientService {
                 throw new AtLeastOneCoordinatorException();
             }
 
+        }
+        return club;
+    }
+
+    @Override
+    public Client getClientByUsername(String username) {
+        return clientRepo.findClientByUsername(username);
+    }
+
+    @Override
+    public Client getClientFromOauth2(String username, String name, String email) {
+        Client clientFromUtopiWeb = new Client();
+        Client clientFromDB = getClientByUsername(username);
+
+        if (clientFromDB != null){
+            return clientFromDB;
+        } else {
+            clientFromUtopiWeb.setUsername(username);
+            if (name != null){
+                clientFromUtopiWeb.setName(name);
+                clientFromUtopiWeb.setLastname(name);
+            } else {
+                clientFromUtopiWeb.setName("GitHub");
+                clientFromUtopiWeb.setLastname("User");
+            }
+
+            if (email != null){
+                clientFromUtopiWeb.setEmail(email);
+            } else {
+                clientFromUtopiWeb.setEmail("");
+            }
+            clientFromUtopiWeb.setDescription("");
+            clientFromUtopiWeb.setHearts(new HashSet<>());
+            clientFromUtopiWeb.setCoordinator(null);
+            clientFromUtopiWeb.setActivities(new HashSet<>());
+            clientFromUtopiWeb.setCreatedDate(LocalDateTime.now());
+            return clientRepo.save(clientFromUtopiWeb);
+        }
+    }
+
+    @Override
+    public String getToGitHub(String res, CloseableHttpClient client)  {
+        try {
+            String token = res.split("&")[0].split("=")[1];
+            HttpGet get = new HttpGet("https://api.github.com/user");
+            get.setHeader("Authorization", "Bearer "+token );
+            CloseableHttpResponse response = client.execute(get);
+            return EntityUtils.toString(response.getEntity());
+        } catch (IOException e){
+            throw new OAuth2GitHubAuthenticationException();
+        }
+
+    }
+
+    @Override
+    public String postToGitHubWithOauth2Information(GithubCodeDto githubCodeDto, CloseableHttpClient client) {
+        try {
+            HttpPost post = new HttpPost("https://github.com/login/oauth/access_token");
+            Gson gson = new Gson();
+            StringEntity postingString = new StringEntity(gson.toJson(githubCodeDto));//gson.tojson() converts your pojo to json
+            post.setEntity(postingString);
+            post.setHeader("Content-type", "application/json");
+            CloseableHttpResponse closeableHttpResponse = client.execute(post);
+            return EntityUtils.toString(closeableHttpResponse.getEntity());
+        } catch (IOException e){
+            throw new OAuth2GitHubAuthenticationException();
+        }
+    }
+
+    @Override
+    public Long createUserId(Object idString, String username) {
+        Long id = Long.parseLong(idString.toString().substring(0,1));
+        while (true){
+            Client clientCheckId = clientRepo.findClientByUsername(username);
+            if (clientCheckId != null && clientCheckId.getUsername().equals(username)){
+                return clientCheckId.getId();
+            }
+            if (clientCheckId != null){
+                id*=1000;
+            } else {
+                break;
+            }
+        }
+        return id;
+    }
+
+    @Override
+    public void handlePasswords(Client client, PasswordsSettingsDto passwordsSettingsDto) {
+        validatePasswordSettings(passwordsSettingsDto);
+        if (client.getPassword() != null){
+            if (!passwordEncoder.matches(passwordsSettingsDto.getConfirmPassword2(), client.getPassword())){
+                throw new IncorrectPasswordException();
+            }
+        }
+
+        client.setPassword(passwordEncoder.encode(passwordsSettingsDto.getNewPassword()));
+        clientRepo.save(client);
+    }
+
+    private void validatePasswordSettings(PasswordsSettingsDto passwordsSettingsDto) {
+        noRareCharactersInText(passwordsSettingsDto.getNewPassword());
+        noRareCharactersInText(passwordsSettingsDto.getRepeatPassword());
+        noRareCharactersInText(passwordsSettingsDto.getConfirmPassword2());
+        if(passwordsSettingsDto.getNewPassword().equals("") || passwordsSettingsDto.getRepeatPassword().equals("")){
+            throw new EmptyFieldsException();
         }
     }
 

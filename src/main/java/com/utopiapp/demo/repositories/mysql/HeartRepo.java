@@ -10,4 +10,5 @@ import java.util.List;
 public interface HeartRepo extends JpaRepository<Heart, Long> {
     List<Heart> findHeartsByClient(Client client);
     List<Heart> findHeartsByActivity_Id(Long id);
+    Boolean existsByClientAndActivity(Client client, Activity activity);
 }

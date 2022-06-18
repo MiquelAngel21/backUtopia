@@ -8,7 +8,6 @@ import java.util.Set;
 public class ActivityDto {
     private Long id;
     private String name;
-    private boolean isEvent;
     private String description;
     private LocalDateTime createdDate;
     private Client client;
@@ -30,14 +29,6 @@ public class ActivityDto {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public boolean isEvent() {
-        return isEvent;
-    }
-
-    public void setEvent(boolean event) {
-        isEvent = event;
     }
 
     public String getDescription() {

@@ -45,7 +45,7 @@ public class MainConfiguration extends WebSecurityConfigurerAdapter {
 
     /**
      * Encripta el pasword
-     * @return pasword ecriptado
+     * @return pasword encriptado
      */
     @Bean
     public PasswordEncoder passwordEncoder(){
@@ -75,8 +75,8 @@ public class MainConfiguration extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http.cors().and().csrf().disable()
                 .authorizeRequests()
-                .antMatchers(HttpMethod.GET, "/login", "/register", "/").permitAll()
-                .antMatchers(HttpMethod.POST, "/login", "/register", "/new-club").permitAll()
+                .antMatchers(HttpMethod.GET, "/login", "/register", "/", "/about-utopiweb", "/get-github-oauth2").permitAll()
+                .antMatchers(HttpMethod.POST, "/login", "/register", "/get-github-oauth2").permitAll()
                 .anyRequest().authenticated()
                 .and()
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);

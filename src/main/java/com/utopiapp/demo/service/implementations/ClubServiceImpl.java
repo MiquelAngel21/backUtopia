@@ -408,7 +408,8 @@ public class ClubServiceImpl implements ClubService {
         return files;
     }
 
-    private File fileDtoIntoFile(FileDto fileDto) {
+    @Override
+    public File fileDtoIntoFile(FileDto fileDto) {
         File file = new File();
         file.setContent(Base64.getDecoder().decode(fileDto.getContent()));
         file.setName(fileDto.getName());

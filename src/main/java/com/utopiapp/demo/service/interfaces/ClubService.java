@@ -2,6 +2,7 @@ package com.utopiapp.demo.service.interfaces;
 
 import com.utopiapp.demo.dto.ClubWithAddressDto;
 import com.utopiapp.demo.dto.DescriptionPetitionDto;
+import com.utopiapp.demo.dto.FileDto;
 import com.utopiapp.demo.model.Client;
 import com.utopiapp.demo.model.Club;
 import com.utopiapp.demo.model.File;
@@ -32,4 +33,6 @@ public interface ClubService {
     Map<String, Object> convertClubToMap(Club club);
 
     Map<String, Object> fileToMap(File file);
+
+    File fileDtoIntoFile(FileDto fileDto);
 }

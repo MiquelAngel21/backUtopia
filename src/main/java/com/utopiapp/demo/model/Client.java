@@ -28,10 +28,9 @@ public class Client{
     @Column(nullable = false)
     private String lastname;
 
-    @Column(nullable = false, unique = true, length = 200)
+    @Column(nullable = false)
     private String email;
 
-    @Column(nullable = false)
     @JsonIgnore
     private String password;
 
@@ -63,7 +62,7 @@ public class Client{
     private Coordinator coordinator;
 
 
-    public Client(Long id, String name, String username, String lastname, String email, String password, LocalDateTime createdDate, Coordinator coordinator, Club club, Set<Petition> petitions, Set<Activity> activities, Set<Heart> hearts, String description) {
+    public Client(Long id, String name, String username, String lastname, String email, String password, LocalDateTime createdDate, Coordinator coordinator, Club club, Set<Petition> petitions, Set<Activity> activities, Set<Heart> hearts, String description, File file) {
         this.id = id;
         this.name = name;
         this.username = username;
@@ -77,6 +76,7 @@ public class Client{
         this.hearts = hearts;
         this.description = description;
         this.coordinator = coordinator;
+        this.file = file;
     }
 
     public Client(String name, String username, String lastname, String email, String password, LocalDateTime createdDate) {
@@ -208,7 +208,7 @@ public class Client{
     }
 
     public UserMain toUserMain(){
-        return new UserMain(this.id, this.name, this.username, this.lastname, this.email, this.password, this.createdDate, this.club, this.petitions, this.activities, this.hearts, this.description, this.coordinator);
+        return new UserMain(this.id, this.name, this.username, this.lastname, this.email, this.password, this.createdDate, this.club, this.petitions, this.activities, this.hearts, this.description, this.coordinator, this.file);
     }
 
     @Override

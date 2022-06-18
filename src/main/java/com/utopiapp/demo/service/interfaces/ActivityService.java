@@ -13,26 +13,28 @@ import java.util.Map;
 
 public interface ActivityService {
     Page<Activity> getAllActivitiesByMostRecentDate(Pageable paging);
-    List<Map<String, Object>> getActivitiesByUserAndMostRecentDate(Long clientId);
+    List<Map<String, Object>> getActivitiesByUserAndMostRecentDate(Client client);
 
     Activity createNewActivity(Activity activity, ActivityDto activityDto, UserMain userMain, boolean isUpdate);
 
     void updateAnExistingActivity(Long id, Activity activity, ActivityDto activityDto, UserMain userMain);
 
     void deleteActivity(Long id, UserMain user);
+    Map<String, Object> getOneActivityById(Long id, Client currentClient);
 
-    Map<String, Object> getOneActivityById(Long id);
-
-    List<Map<String, Object>> convertActivityListIntoJsonList(List<Activity> content);
+    List<Map<String, Object>> convertActivityListIntoJsonList(List<Activity> activities, Client currentClient);
 
     Map<String, Object> manageLike(Long id, UserMain userMain);
 
     Map<String, Object> makePaginationWithDatabaseResults(Client client, String typeOfSearch, String filterText, int start, int length);
 
+    Map<String, Object> createActivityJson(Activity activity, Client currentClient);
+
     Activity getActivityByName(String name);
     Activity getActivityById(Long id);
 
-    Map<String, Object> getActivityDataJson(Long id);
+    Map<String, Object> getActivityDataJson(Long id, Client currentClient);
+
     boolean isOwner(Client currentClient, Long activityId);
 
     List<Tag> getAllTags();

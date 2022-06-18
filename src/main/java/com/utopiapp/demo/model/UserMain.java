@@ -17,13 +17,14 @@ public class UserMain implements UserDetails {
     private String password;
     private Coordinator coordinator;
     private LocalDateTime createdDate;
+    private File file;
     private Collection<? extends GrantedAuthority> authorities;
     private Club club;
     private Set<Petition> petitions;
     private Set<Activity> activities;
     private Set<Heart> hearts;
 
-    public UserMain(Long id, String name, String username, String lastname, String email, String password, LocalDateTime createdDate, Club club, Set<Petition> petitions, Set<Activity> activities, Set<Heart> hearts, String description, Coordinator coordinator) {
+    public UserMain(Long id, String name, String username, String lastname, String email, String password, LocalDateTime createdDate, Club club, Set<Petition> petitions, Set<Activity> activities, Set<Heart> hearts, String description, Coordinator coordinator, File file) {
         this.id = id;
         this.name = name;
         this.username = username;
@@ -37,10 +38,11 @@ public class UserMain implements UserDetails {
         this.hearts = hearts;
         this.club = club;
         this.coordinator = coordinator;
+        this.file = file;
     }
 
     public Client toClient(){
-        return new Client(this.id, this.name, this.username, this.lastname, this.email, this.password, this.createdDate, this.coordinator, this.club, this.petitions, this.activities, this.hearts, this.description);
+        return new Client(this.id, this.name, this.username, this.lastname, this.email, this.password, this.createdDate, this.coordinator, this.club, this.petitions, this.activities, this.hearts, this.description, this.file);
     }
 
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -131,5 +133,57 @@ public class UserMain implements UserDetails {
 
     public void setCreatedDate(LocalDateTime createdDate) {
         this.createdDate = createdDate;
+    }
+
+    public Coordinator getCoordinator() {
+        return coordinator;
+    }
+
+    public void setCoordinator(Coordinator coordinator) {
+        this.coordinator = coordinator;
+    }
+
+    public File getFile() {
+        return file;
+    }
+
+    public void setFile(File file) {
+        this.file = file;
+    }
+
+    public void setAuthorities(Collection<? extends GrantedAuthority> authorities) {
+        this.authorities = authorities;
+    }
+
+    public Club getClub() {
+        return club;
+    }
+
+    public void setClub(Club club) {
+        this.club = club;
+    }
+
+    public Set<Petition> getPetitions() {
+        return petitions;
+    }
+
+    public void setPetitions(Set<Petition> petitions) {
+        this.petitions = petitions;
+    }
+
+    public Set<Activity> getActivities() {
+        return activities;
+    }
+
+    public void setActivities(Set<Activity> activities) {
+        this.activities = activities;
+    }
+
+    public Set<Heart> getHearts() {
+        return hearts;
+    }
+
+    public void setHearts(Set<Heart> hearts) {
+        this.hearts = hearts;
     }
 }

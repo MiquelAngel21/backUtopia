@@ -12,4 +12,5 @@ import java.util.Set;
 public interface TagRepo extends JpaRepository<Tag, Long> {
     List<Tag> findAll();
     List<Tag> findByActivitiesIn(Set<Activity> activities);
+    boolean existsByName(String name);
 }

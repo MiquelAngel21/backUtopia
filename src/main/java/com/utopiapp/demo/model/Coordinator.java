@@ -13,7 +13,7 @@ public class Coordinator {
     @GeneratedValue(generator="gen")
     private Long id;
 
-    @ManyToOne()
+    @ManyToOne(fetch = FetchType.EAGER)
     private Club club;
 
     @OneToOne(fetch = FetchType.EAGER)
