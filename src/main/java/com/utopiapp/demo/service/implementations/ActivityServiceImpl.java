@@ -52,7 +52,9 @@ public class ActivityServiceImpl implements ActivityService {
         validateFieldsOfActivity(activityDto);
         activity.setName(activityDto.getName());
         activity.setDescription(activityDto.getDescription());
-        activity.setCreatedDate(LocalDateTime.now());
+        if (!isUpdate){
+            activity.setCreatedDate(LocalDateTime.now());
+        }
         activity.setClient(userMain.toClient());
         activity.setTags(activityDto.getTags());
         addMaterialsToActivity(activity, activityDto);
@@ -63,7 +65,7 @@ public class ActivityServiceImpl implements ActivityService {
     private void validateFieldsOfActivity(ActivityDto activityDto) {
         noRareCharactersInText(activityDto.getName());
         noRareCharactersInText(activityDto.getDescription());
-        if (activityRepoMysql.existsByName(activityDto.getName())){
+        if (activityRepoMysql.existsByNameAndIdIsNot(activityDto.getName(), activityDto.getId())){
             throw new ActivityNameInUseException();
         }
         for (Tag tag : activityDto.getTags()){
