@@ -1,10 +1,18 @@
 package com.utopiapp.demo.dto;
 
 public class AddressDto {
+    private String id;
     private String street;
     private String number;
     private String city;
     private String zipCode;
+
+    public AddressDto(String street, String number, String city, String zipCode){
+        this.street = street;
+        this.number = number;
+        this.city = city;
+        this.zipCode = zipCode;
+    }
 
     public String getStreet() {
         return street;

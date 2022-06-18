@@ -1,14 +1,24 @@
 package com.utopiapp.demo.controllers;
 
+import com.utopiapp.demo.dto.AddressDto;
+import com.utopiapp.demo.dto.ClubDto;
 import com.utopiapp.demo.dto.ClubWithAddressDto;
 import com.utopiapp.demo.dto.DescriptionPetitionDto;
+import com.utopiapp.demo.exceptions.UnauthorizedException;
+import com.utopiapp.demo.model.Address;
+import com.utopiapp.demo.model.Client;
 import com.utopiapp.demo.model.Club;
 import com.utopiapp.demo.model.UserMain;
 import com.utopiapp.demo.service.interfaces.ClientService;
 import com.utopiapp.demo.service.interfaces.ClubService;
+import org.apache.coyote.Response;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -69,6 +79,37 @@ public class ClubController {
             @PathVariable Long id
     ){
         return clubService.getClubById(id);
+    }
+
+    @GetMapping(value = "/update-club/{id}", produces = {"application/json"})
+    @ResponseBody
+    public ResponseEntity<?> getUpdateClub(
+            @PathVariable Long id,
+            Authentication authentication
+    ){
+        UserMain usermain = (UserMain) authentication.getPrincipal();
+        Client currentUser = usermain.toClient();
+        Map<String, Map<String, Object>> clubAndAddress = new HashMap<>();
+        Club clubToUpdate = clubService.findClubById(id);
+        if (!currentUser.getCoordinator().getClub().getName().equals(clubToUpdate.getName())){
+            throw new UnauthorizedException();
+        }
+        Address address = clubService.findAddressByClub(clubToUpdate);
+        clubAndAddress.put("club",clubService.convertClubToMap(clubToUpdate));
+        clubAndAddress.put("address",clubService.convertAddressToMap(address));
+
+        return new ResponseEntity<>(clubAndAddress, HttpStatus.OK);
+    }
+
+    @PutMapping(value = "/update-club/{id}", produces = {"application/json"})
+    @ResponseBody
+    public ResponseEntity<?> updateClub(
+            @RequestBody ClubWithAddressDto clubWithAddressDto,
+            Authentication authentication
+    ){
+        UserMain userMain = (UserMain) authentication.getPrincipal();
+        Club clubUpdated = clubService.createClub(clubWithAddressDto, userMain.toClient());
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @GetMapping(value = "/club/coordinators/{clubId}", produces = {"application/json"})

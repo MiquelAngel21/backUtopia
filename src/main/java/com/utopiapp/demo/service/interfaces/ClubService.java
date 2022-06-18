@@ -2,6 +2,7 @@ package com.utopiapp.demo.service.interfaces;
 
 import com.utopiapp.demo.dto.ClubWithAddressDto;
 import com.utopiapp.demo.dto.DescriptionPetitionDto;
+import com.utopiapp.demo.model.*;
 import com.utopiapp.demo.dto.FileDto;
 import com.utopiapp.demo.model.Client;
 import com.utopiapp.demo.model.Club;
@@ -15,6 +16,10 @@ public interface ClubService {
     Club createClub(ClubWithAddressDto clubWithAddressDto, Client toClient);
     Map<String, Object> getPaginatedClubs(String name, int start, int length);
     Map<String, Object> createNewPetition(Long clubId, DescriptionPetitionDto descriptionPetitionDto, Client toClient);
+
+    Club findClubById(Long id);
+
+    Address findAddressByClub(Club club);
 
     Map<String, Object> getClubById(Long id);
 
@@ -31,6 +36,8 @@ public interface ClubService {
     Map<String, Object> ascentOrLowerAVolunteer(Client toClient, Long volunteerId);
 
     Map<String, Object> convertClubToMap(Club club);
+
+    Map<String, Object> convertAddressToMap(Address address);
 
     Map<String, Object> fileToMap(File file);
 
