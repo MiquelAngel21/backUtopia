@@ -30,9 +30,10 @@ public class ExceptionController {
             OAuth2GitHubAuthenticationException.class,
             EmptyPasswordException.class,
             NegativeAmountException.class,
-            InvalidImageException.class
+            InvalidImageException.class,
+            InvocationTargetException.class
     })
-    public ResponseEntity<?> exceptionHandler(RuntimeException runtimeException){
+    public ResponseEntity<?> exceptionHandler(Exception runtimeException){
         errors.clear();
         if (runtimeException instanceof IncorrectPasswordException){
             errors.put("message", new IncorrectPasswordException().getMessage());
@@ -44,13 +45,12 @@ public class ExceptionController {
             errors.put("message", new UnauthorizedException().getMessage());
             return new ResponseEntity<>(errors, HttpStatus.UNAUTHORIZED);
         }else if (runtimeException instanceof RareCharacterException){
-            System.out.println("HEY HEY HEY");
             errors.put("message", new RareCharacterException().getMessage());
             return new ResponseEntity<>(errors, HttpStatus.UNAUTHORIZED);
         }else if (runtimeException instanceof CodeNotExistsException){
             errors.put("message", new CodeNotExistsException().getMessage());
             return new ResponseEntity<>(errors, HttpStatus.NOT_FOUND);
-        }else if (runtimeException instanceof InternalAuthenticationServiceException){
+        }else if (runtimeException instanceof InternalAuthenticationServiceException || runtimeException instanceof InvocationTargetException){
             errors.put("message", "La contrasenya o el email son incorrectes");
             return new ResponseEntity<>(errors, HttpStatus.UNAUTHORIZED);
         }else if (runtimeException instanceof IllegalArgumentException){
