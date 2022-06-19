@@ -69,7 +69,10 @@ public class SettingsServiceImpl implements SettingsService {
         noRareCharactersInText(settingsDataDto.getEmail());
         noRareCharactersInText(settingsDataDto.getLastname());
         noRareCharactersInText(settingsDataDto.getName());
-        noRareCharactersInText(settingsDataDto.getDescription());
+        if (settingsDataDto.getDescription() != null){
+            noRareCharactersInText(settingsDataDto.getDescription());
+        }
+
 
         if (currentClient.getPassword() == null || currentClient.getPassword().equals("")) {
             throw new EmptyPasswordException();
